@@ -1,0 +1,23 @@
+{
+  "files.associations": {
+    "LEARNING_LOG.md": "markdown",
+    "MISTAKES_LOG.md": "markdown",
+    "PATTERN_LIBRARY.md": "markdown",
+    "RETROSPECTIVES.md": "markdown"
+  },
+  "markdown.preview.scrollEditorWithPreview": true,
+  "markdown.preview.scrollPreviewWithEditor": true,
+  "workbench.quickOpen.includeSymbols": true,
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/.git": true,
+    "**/dist": true,
+    "**/build": true
+  },
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/.git/objects/**": true,
+    "**/dist/**": true,
+    "**/build/**": true
+  }
+}
