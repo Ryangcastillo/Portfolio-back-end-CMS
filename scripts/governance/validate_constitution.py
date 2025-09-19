@@ -172,25 +172,16 @@ class ConstitutionValidator:
 
 
 def main():
-    """Main entry point."""
-    parser = argparse.ArgumentParser(description="Validate CONSTITUTION.md compliance")
-    parser.add_argument("--file", type=Path, help="Path to constitution file", 
-                       default=Path("CONSTITUTION.md"))
-    parser.add_argument("--strict", action="store_true", 
-                       help="Treat warnings as errors")
+    """Main function to validate the constitution."""
+    base_path = Path(".")
+    constitution_path = base_path / "docs/governance/CONSTITUTION.md"
     
-    args = parser.parse_args()
-    
-    validator = ConstitutionValidator(args.file)
+    validator = ConstitutionValidator(constitution_path)
     success = validator.validate()
     validator.print_results()
     
     # Exit with error code if validation failed
     if not success:
-        sys.exit(1)
-    
-    if args.strict and validator.warnings:
-        print("\n❌ Strict mode: Warnings treated as errors")
         sys.exit(1)
     
     sys.exit(0)

@@ -39,15 +39,15 @@ class TraceabilityValidator:
     def _load_documents(self):
         """Load content from all governance documents."""
         doc_files = [
-            "CONSTITUTION.md",
-            "PLAN.md", 
+            "docs/governance/CONSTITUTION.md",
+            "docs/architecture/PLAN.md", 
             "TASKS.md",
-            "ENFORCEMENT.md",
-            "SPECIFICATIONS.md"
+            "docs/governance/ENFORCEMENT.md",
+            "docs/architecture/SPECIFICATIONS.md"
         ]
         
         # Also load ADR files
-        adr_files = list(self.base_path.glob("ADR-*.md"))
+        adr_files = list(self.base_path.glob("docs/architecture/ADR-*.md"))
         
         all_files = doc_files + [f.name for f in adr_files]
         
@@ -78,13 +78,13 @@ class TraceabilityValidator:
         
         # Extract available PLAN and SPEC references
         plan_ids = set()
-        if "PLAN.md" in self.documents:
-            plan_ids = self._extract_references(self.documents["PLAN.md"], r'PLAN-(\d{3})')
+        if "docs/architecture/PLAN.md" in self.documents:
+            plan_ids = self._extract_references(self.documents["docs/architecture/PLAN.md"], r'PLAN-(\d{3})')
         
         # Extract SPEC IDs from SPECIFICATIONS.md
         spec_ids = set()
-        if "SPECIFICATIONS.md" in self.documents:
-            spec_ids = self._extract_references(self.documents["SPECIFICATIONS.md"], r'SPEC-(\d{3})')
+        if "docs/architecture/SPECIFICATIONS.md" in self.documents:
+            spec_ids = self._extract_references(self.documents["docs/architecture/SPECIFICATIONS.md"], r'SPEC-(\d{3})')
         
         # Check each task for proper references
         orphaned_tasks = []

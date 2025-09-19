@@ -193,7 +193,7 @@ Our development is guided by [12 core principles](CONSTITUTION.md#principles):
 
 We welcome contributions! Please follow our governance framework:
 
-1. **Read Documentation**: Start with [CONSTITUTION.md](CONSTITUTION.md)
+1. **Read Documentation**: Start with [CONSTITUTION.md](docs/governance/CONSTITUTION.md)
 2. **Find a Task**: Check [TASKS.md](TASKS.md) for available work
 3. **Follow Process**: Use our [PR template](.github/pull_request_template.md)
 4. **Pass Validation**: All governance checks must pass
@@ -207,21 +207,30 @@ We welcome contributions! Please follow our governance framework:
 
 ## 📚 Documentation
 
-### For Users
-- **User Guide**: (Coming soon - SPEC-001)
-- **API Documentation**: Available at `/docs` when running backend
-- **Component Library**: (Coming soon - TASK-011)
+### Core Documentation
+- **[README.md](README.md)**: Project overview and quick start (you are here)
+- **[TASKS.md](TASKS.md)**: Current development tasks and status
+- **[SPECIFY.md](SPECIFY.md)**: System requirements and specifications
+
+### Governance Framework
+Located in `/docs/governance/`:
+- **[CONSTITUTION.md](docs/governance/CONSTITUTION.md)**: Core principles and decision framework
+- **[ENFORCEMENT.md](docs/governance/ENFORCEMENT.md)**: Governance compliance rules and automation
+- **[GOVERNANCE_REVIEWS.md](docs/governance/GOVERNANCE_REVIEWS.md)**: Regular review schedules and templates
+- **[GOVERNANCE_SUMMARY.md](docs/governance/GOVERNANCE_SUMMARY.md)**: Complete framework overview
+- **[TEAM_ADOPTION_GUIDE.md](docs/governance/TEAM_ADOPTION_GUIDE.md)**: Practical workflows and examples
+
+### Architecture Documentation
+Located in `/docs/architecture/`:
+- **[PLAN.md](docs/architecture/PLAN.md)**: System architecture blueprint
+- **[SPECIFICATIONS.md](docs/architecture/SPECIFICATIONS.md)**: Detailed system specifications
+- **[ADR-0001.md](docs/architecture/ADR-0001.md)**: Backend technology decision
+- **[ADR-0002.md](docs/architecture/ADR-0002.md)**: Frontend technology decision
 
 ### For Developers
-- **[Architecture Overview](PLAN.md)**: System design and components
-- **[Development Guide](TASKS.md)**: Task management and workflows
-- **[Governance Guide](ENFORCEMENT.md)**: Compliance and quality processes
-- **[Review Schedule](GOVERNANCE_REVIEWS.md)**: Regular maintenance processes
-
-### For Maintainers
-- **[Decision Records](.)**: All ADR-*.md files
-- **[Compliance Dashboard](.)**: (Coming soon - TASK-019)
-- **[Team Guidelines](.)**: Full governance adoption guide
+- **API Documentation**: Available at `/docs` when backend is running
+- **Component Library**: Shadcn/ui components in `/components/ui/`
+- **Development Workflows**: See [TEAM_ADOPTION_GUIDE.md](docs/governance/TEAM_ADOPTION_GUIDE.md)
 
 ## 🔍 Quality Assurance
 
