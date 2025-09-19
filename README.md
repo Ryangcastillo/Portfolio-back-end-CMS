@@ -1,30 +1,281 @@
-# CMSDataUpdated
+# Stitch CMS
 
-*Automatically synced with your [v0.app](https://v0.app) deployments*
+> A modern, extensible Content Management System with integrated governance and AI capabilities.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/ryangcastillo-7788s-projects/v0-cmsd-ata-updated)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/projects/uLmTWKF5kSp)
+[![Build Status](https://github.com/Ryangcastillo/CMS/actions/workflows/governance.yml/badge.svg)](https://github.com/Ryangcastillo/CMS/actions)
+[![Governance Compliance](https://img.shields.io/badge/Governance-Compliant-green)](#governance-framework)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-## Overview
+## 🏗️ Project Architecture
 
-This repository will stay in sync with your deployed chats on [v0.app](https://v0.app).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.app](https://v0.app).
+Stitch CMS is built with a **governance-first** approach, ensuring maintainable, scalable, and well-documented development practices.
 
-## Deployment
+### Technology Stack
+- **Backend**: FastAPI + SQLAlchemy (async) with PostgreSQL
+- **Frontend**: Next.js 14+ with App Router, TypeScript, Tailwind CSS
+- **AI Integration**: Pluggable AI provider system (OpenAI, Anthropic, etc.)
+- **Infrastructure**: Docker, GitHub Actions, Vercel deployment
 
-Your project is live at:
+### Core Features
+- 📝 **Content Management**: Rich text editing, media handling, versioning
+- 👥 **User Management**: Role-based access control, authentication
+- 🎉 **Event Management**: Event creation, RSVP tracking, notifications  
+- 🔌 **Module System**: Extensible plugin architecture
+- 🤖 **AI Assistant**: Integrated AI capabilities for content generation
+- 📊 **Analytics**: Usage tracking and performance monitoring
 
-**[https://vercel.com/ryangcastillo-7788s-projects/v0-cmsd-ata-updated](https://vercel.com/ryangcastillo-7788s-projects/v0-cmsd-ata-updated)**
+## 🚀 Quick Start
 
-## Build your app
+### Prerequisites
+- Python 3.11+
+- Node.js 18+
+- PostgreSQL 14+
+- Git
 
-Continue building your app on:
+### Installation
 
-**[https://v0.app/chat/projects/uLmTWKF5kSp](https://v0.app/chat/projects/uLmTWKF5kSp)**
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/Ryangcastillo/CMS.git
+   cd CMS
+   ```
 
-## How It Works
+2. **Set up backend**
+   ```bash
+   cd backend
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   pip install -r requirements.txt
+   ```
 
-1. Create and modify your project using [v0.app](https://v0.app)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+3. **Set up database**
+   ```bash
+   # Create PostgreSQL database
+   createdb stitch_cms
+   
+   # Run migrations
+   alembic upgrade head
+   ```
+
+4. **Set up frontend**
+   ```bash
+   cd ..  # Back to root
+   npm install
+   # or
+   pnpm install
+   ```
+
+5. **Start development servers**
+   ```bash
+   # Terminal 1: Backend
+   cd backend
+   uvicorn main:app --reload --port 8000
+   
+   # Terminal 2: Frontend
+   npm run dev
+   # or
+   pnpm dev
+   ```
+
+6. **Access the application**
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:8000
+   - API Documentation: http://localhost:8000/docs
+
+## 📋 Governance Framework
+
+Stitch CMS follows a comprehensive governance framework to ensure code quality, maintainability, and team collaboration.
+
+### Key Documents
+- **[CONSTITUTION.md](CONSTITUTION.md)**: Core principles and governance rules
+- **[PLAN.md](PLAN.md)**: Architectural blueprint and system design
+- **[TASKS.md](TASKS.md)**: Development tasks with clear traceability
+- **[ENFORCEMENT.md](ENFORCEMENT.md)**: Automated compliance and quality gates
+- **[ADR-*.md](.)**: Architecture Decision Records
+
+### Quick Governance Guide
+
+#### For New Contributors
+1. **Read the Constitution**: Understand our [12 core principles](CONSTITUTION.md#principles)
+2. **Follow the Process**: Constitution → Plan → Tasks → Implementation
+3. **Reference Tasks**: All PRs must reference at least one `TASK-###`
+4. **Use PR Template**: Our template ensures governance compliance
+5. **Pass CI Checks**: Automated validation enforces our standards
+
+#### For Maintainers  
+- **Review Process**: Ensure PRs follow governance requirements
+- **Traceability**: Verify TASK → PLAN/SPEC → CONST-P# links
+- **Quality Gates**: All governance checks must pass before merge
+- **Regular Reviews**: Monthly governance health assessments
+
+### Governance Validation
+```bash
+# Run all governance checks
+python scripts/governance/validate_all.py
+
+# Individual validations
+python scripts/governance/validate_constitution.py
+python scripts/governance/validate_traceability.py
+python scripts/governance/validate_pr_references.py
+```
+
+## 🛠️ Development Workflow
+
+### 1. Starting New Work
+```bash
+# Check current tasks
+cat TASKS.md | grep "Not Started" -A 3
+
+# Pick a task (e.g., TASK-004)
+# Create feature branch
+git checkout -b feature/task-004-content-management
+
+# Update task status to "In Progress" in TASKS.md
+```
+
+### 2. During Development
+- Follow the acceptance criteria in your chosen task
+- Write tests for all new functionality
+- Maintain API documentation (automatic with FastAPI)
+- Update relevant documentation
+
+### 3. Before Submitting PR
+```bash
+# Run tests
+npm run test              # Frontend tests
+cd backend && pytest     # Backend tests
+
+# Run governance validation
+python scripts/governance/validate_all.py --pr-mode
+
+# Check code quality  
+npm run lint              # Frontend linting
+cd backend && flake8      # Backend linting
+```
+
+### 4. PR Submission
+- Use the provided PR template
+- Reference your TASK-### in PR description
+- Ensure all CI checks pass
+- Request review from maintainers
+
+## 🏛️ Constitutional Principles
+
+Our development is guided by [12 core principles](CONSTITUTION.md#principles):
+
+1. **API First** - All capabilities exposed via documented APIs
+2. **Async & Non-Blocking** - Prefer async patterns for performance  
+3. **Extensibility by Abstraction** - Clear interfaces for future plugins
+4. **Separation of Concerns** - Decoupled layers and boundaries
+5. **Security & Privacy by Default** - Security built-in, not bolted-on
+6. **Spec-Driven Change Flow** - Structured change process
+7. **Observability Required** - Comprehensive logging and monitoring
+8. **Incremental Hardening** - Continuous security improvements
+9. **Testable Units Only** - All work has clear success criteria
+10. **Change Traceability** - Full traceability from PR to principles
+11. **Minimal Surface Area** - Avoid premature complexity
+12. **Fast Feedback & Small Batches** - Quick iterations and reviews
+
+## 📊 Project Status
+
+### Current Sprint Focus
+- ✅ Core authentication system (TASK-001 through TASK-003)
+- ✅ Governance framework implementation (TASK-016)  
+- 🔄 Content management API (TASK-004)
+- 🔄 Event management system (TASK-005)
+- 📋 Frontend component library (TASK-011)
+
+### Architecture Decisions
+- [ADR-0001](ADR-0001.md): FastAPI + SQLAlchemy backend choice
+- [ADR-0002](ADR-0002.md): Next.js App Router frontend choice
+
+## 🤝 Contributing
+
+We welcome contributions! Please follow our governance framework:
+
+1. **Read Documentation**: Start with [CONSTITUTION.md](CONSTITUTION.md)
+2. **Find a Task**: Check [TASKS.md](TASKS.md) for available work
+3. **Follow Process**: Use our [PR template](.github/pull_request_template.md)
+4. **Pass Validation**: All governance checks must pass
+5. **Get Review**: Maintainer approval required
+
+### New Contributors
+- Join our [onboarding process](TASK-018) (coming soon)
+- Ask questions in discussions or issues
+- Start with small, well-defined tasks
+- Follow our [code of conduct](CODE_OF_CONDUCT.md) (coming soon)
+
+## 📚 Documentation
+
+### For Users
+- **User Guide**: (Coming soon - SPEC-001)
+- **API Documentation**: Available at `/docs` when running backend
+- **Component Library**: (Coming soon - TASK-011)
+
+### For Developers
+- **[Architecture Overview](PLAN.md)**: System design and components
+- **[Development Guide](TASKS.md)**: Task management and workflows
+- **[Governance Guide](ENFORCEMENT.md)**: Compliance and quality processes
+- **[Review Schedule](GOVERNANCE_REVIEWS.md)**: Regular maintenance processes
+
+### For Maintainers
+- **[Decision Records](.)**: All ADR-*.md files
+- **[Compliance Dashboard](.)**: (Coming soon - TASK-019)
+- **[Team Guidelines](.)**: Full governance adoption guide
+
+## 🔍 Quality Assurance
+
+### Automated Checks
+- **CI/CD Pipeline**: GitHub Actions with comprehensive testing
+- **Governance Validation**: Automated compliance checking  
+- **Code Quality**: ESLint, Prettier, Flake8, mypy
+- **Security Scanning**: Automated vulnerability detection
+- **Test Coverage**: Minimum 80% coverage required
+
+### Manual Processes  
+- **Code Review**: All PRs require maintainer approval
+- **Governance Review**: Monthly framework health assessment
+- **Architecture Review**: Quarterly strategic alignment check
+- **Security Review**: Regular security audits and updates
+
+## 📈 Monitoring & Observability
+
+### Development Metrics
+- Governance compliance score
+- Test coverage percentage  
+- CI success rate
+- PR review time
+
+### Application Metrics
+- API response times
+- User engagement analytics
+- System performance monitoring
+- Error rates and alerting
+
+## 📞 Support & Community
+
+### Get Help
+- **Issues**: [GitHub Issues](https://github.com/Ryangcastillo/CMS/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Ryangcastillo/CMS/discussions)  
+- **Documentation**: Check this README and linked docs first
+
+### Governance Questions
+- Review [CONSTITUTION.md](CONSTITUTION.md) for principles
+- Check [ENFORCEMENT.md](ENFORCEMENT.md) for specific rules
+- Run validation scripts for immediate feedback
+- Ask in discussions for complex questions
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## Metadata
+**Version**: 2.0.0  
+**Last Updated**: 2025-09-20  
+**Governance Status**: ✅ Compliant  
+**Architecture**: FastAPI + Next.js + PostgreSQL  
+**Governance Framework**: Constitution + Plan + Tasks + ADRs  
+
+**Quick Links**: [Constitution](CONSTITUTION.md) | [Tasks](TASKS.md) | [Plan](PLAN.md) | [Reviews](GOVERNANCE_REVIEWS.md)
