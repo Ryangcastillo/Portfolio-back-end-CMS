@@ -10,6 +10,10 @@ class Settings(BaseSettings):
     secret_key: str = os.getenv("SECRET_KEY", "your-secret-key-change-this")
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
+    refresh_token_expire_days: int = 30
+    token_audience: str = "stitch-cms"
+    token_issuer: str = "stitch-cms-api"
+    encryption_key: str = os.getenv("ENCRYPTION_KEY", "")  # If blank a volatile key will be generated at runtime
     
     # AI Configuration - Flexible API management
     default_ai_provider: str = os.getenv("DEFAULT_AI_PROVIDER", "openrouter")
@@ -44,6 +48,9 @@ class Settings(BaseSettings):
     
     # Frontend URL for RSVP links
     frontend_url: str = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    
+    # Logging
+    log_level: str = os.getenv("LOG_LEVEL", "INFO")
     
     class Config:
         env_file = ".env"

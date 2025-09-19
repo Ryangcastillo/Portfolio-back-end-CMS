@@ -7,6 +7,7 @@ import json
 
 from ..database import get_db, Module, User
 from ..auth import get_current_user
+from ..security import requires_roles, encrypt_value, decrypt_value
 
 router = APIRouter()
 
@@ -142,7 +143,7 @@ async def install_module(
     module_name: str,
     module_data: ModuleCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(requires_roles("admin"))
 ):
     """Install a new module"""
     
@@ -157,12 +158,14 @@ async def install_module(
         raise HTTPException(status_code=400, detail="Module already installed")
     
     # Create module
+    # Encrypt api keys if provided
+    encrypted_keys = {k: encrypt_value(v) for k, v in (module_data.api_keys or {}).items()}
     db_module = Module(
         name=module_name,
         description=module_data.description or available_module.description,
         version=module_data.version,
         configuration=module_data.configuration,
-        api_keys=module_data.api_keys,
+        api_keys=encrypted_keys,
         is_active=False  # Start inactive until configured
     )
     
@@ -177,7 +180,7 @@ async def update_module(
     module_id: int,
     module_update: ModuleUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(requires_roles("admin"))
 ):
     """Update module configuration"""
     
@@ -191,6 +194,8 @@ async def update_module(
     update_data = module_update.dict(exclude_unset=True)
     
     for field, value in update_data.items():
+        if field == "api_keys" and value:
+            value = {k: encrypt_value(v) for k, v in value.items()}
         setattr(module, field, value)
     
     await db.commit()
@@ -202,7 +207,7 @@ async def update_module(
 async def activate_module(
     module_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(requires_roles("admin"))
 ):
     """Activate a module"""
     
@@ -221,7 +226,7 @@ async def activate_module(
 async def deactivate_module(
     module_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(requires_roles("admin"))
 ):
     """Deactivate a module"""
     
@@ -240,7 +245,7 @@ async def deactivate_module(
 async def uninstall_module(
     module_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(requires_roles("admin"))
 ):
     """Uninstall a module"""
     

@@ -6,6 +6,7 @@ from typing import Dict, Any, Optional, List
 
 from ..database import get_db, SiteSettings, User
 from ..auth import get_current_user
+from ..security import requires_roles, mask_secrets
 
 router = APIRouter()
 
@@ -54,9 +55,9 @@ async def list_settings(
         SettingResponse(
             id=setting.id,
             key=setting.key,
-            value=setting.value,
+            value=mask_secrets(setting.value, setting.key),
             description=setting.description,
-            updated_at=setting.updated_at.isoformat() if setting.updated_at else None
+            updated_at=setting.updated_at.isoformat() if setting.updated_at else None,
         )
         for setting in settings
     ]
@@ -78,12 +79,12 @@ async def get_setting(
     return SettingResponse(
         id=setting.id,
         key=setting.key,
-        value=setting.value,
+        value=mask_secrets(setting.value, setting.key),
         description=setting.description,
-        updated_at=setting.updated_at.isoformat() if setting.updated_at else None
+        updated_at=setting.updated_at.isoformat() if setting.updated_at else None,
     )
 
-@router.post("/", response_model=SettingResponse)
+@router.post("/", response_model=SettingResponse, dependencies=[Depends(requires_roles("admin"))])
 async def create_setting(
     setting: SettingCreate,
     db: AsyncSession = Depends(get_db),
@@ -109,12 +110,12 @@ async def create_setting(
     return SettingResponse(
         id=db_setting.id,
         key=db_setting.key,
-        value=db_setting.value,
+        value=mask_secrets(db_setting.value, db_setting.key),
         description=db_setting.description,
-        updated_at=db_setting.updated_at.isoformat() if db_setting.updated_at else None
+        updated_at=db_setting.updated_at.isoformat() if db_setting.updated_at else None,
     )
 
-@router.put("/{setting_key}")
+@router.put("/{setting_key}", dependencies=[Depends(requires_roles("admin"))])
 async def update_setting(
     setting_key: str,
     setting_update: SettingUpdate,
@@ -139,12 +140,12 @@ async def update_setting(
     return SettingResponse(
         id=setting.id,
         key=setting.key,
-        value=setting.value,
+        value=mask_secrets(setting.value, setting.key),
         description=setting.description,
-        updated_at=setting.updated_at.isoformat() if setting.updated_at else None
+        updated_at=setting.updated_at.isoformat() if setting.updated_at else None,
     )
 
-@router.delete("/{setting_key}")
+@router.delete("/{setting_key}", dependencies=[Depends(requires_roles("admin"))])
 async def delete_setting(
     setting_key: str,
     db: AsyncSession = Depends(get_db),
@@ -184,7 +185,7 @@ async def get_site_config(
     
     return default_config
 
-@router.post("/config/site")
+@router.post("/config/site", dependencies=[Depends(requires_roles("admin"))])
 async def update_site_config(
     config: SiteConfig,
     db: AsyncSession = Depends(get_db),
@@ -214,7 +215,7 @@ async def update_site_config(
     
     return {"message": "Site configuration updated successfully"}
 
-@router.post("/initialize-defaults")
+@router.post("/initialize-defaults", dependencies=[Depends(requires_roles("admin"))])
 async def initialize_default_settings(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)

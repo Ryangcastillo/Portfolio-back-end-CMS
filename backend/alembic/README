@@ -1,0 +1,7 @@
+Alembic directory for database schema migrations.
+
+Commands (example):
+  alembic revision --autogenerate -m "describe change"
+  alembic upgrade head
+
+Ensure DB URL is provided via environment variable if not stored in alembic.ini.

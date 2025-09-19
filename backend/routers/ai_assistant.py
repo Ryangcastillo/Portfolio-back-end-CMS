@@ -8,7 +8,9 @@ import json
 
 from ..database import get_db, AIProvider
 from ..auth import get_current_user
+from ..security import requires_roles, mask_secrets
 from ..models.ai_models import AIRequest, AIResponse, AIProviderConfig
+from ..security import encrypt_value, decrypt_value
 
 router = APIRouter()
 
@@ -49,7 +51,7 @@ class AIProviderManager:
         )
         return result.scalar_one_or_none()
     
-    async def make_ai_request(self, provider: AIProvider, prompt: str, model: str = None) -> Dict[Any, Any]:
+    async def make_ai_request(self, provider: AIProvider, prompt: str, model: Optional[str] = None) -> Dict[Any, Any]:
         """Make a request to the AI provider"""
         if provider.name not in self.providers:
             raise HTTPException(status_code=400, detail=f"Unsupported AI provider: {provider.name}")
@@ -58,24 +60,31 @@ class AIProviderManager:
         headers = {}
         
         # Build headers from template
+        # Decrypt stored API key before injecting into headers
+        raw_key = None
+        if provider.api_key:
+            try:
+                raw_key = decrypt_value(provider.api_key)
+            except Exception:
+                raise HTTPException(status_code=400, detail="Stored API key could not be decrypted")
         for key, value in provider_config["headers_template"].items():
-            headers[key] = value.format(api_key=provider.api_key)
-        
+            headers[key] = value.format(api_key=raw_key or "")
+
         # Prepare request based on provider
+        payload: Dict[str, Any] = {}
+        endpoint: str = ""
         if provider.name == "openrouter":
             payload = {
                 "model": model or "meta-llama/llama-3.1-8b-instruct:free",
                 "messages": [{"role": "user", "content": prompt}]
             }
             endpoint = f"{provider.base_url}/chat/completions"
-        
         elif provider.name == "openai":
             payload = {
                 "model": model or "gpt-3.5-turbo",
                 "messages": [{"role": "user", "content": prompt}]
             }
             endpoint = f"{provider.base_url}/chat/completions"
-        
         elif provider.name == "anthropic":
             payload = {
                 "model": model or "claude-3-haiku-20240307",
@@ -83,16 +92,17 @@ class AIProviderManager:
                 "messages": [{"role": "user", "content": prompt}]
             }
             endpoint = f"{provider.base_url}/messages"
-        
+
+        if not endpoint:
+            raise HTTPException(status_code=500, detail="Failed to determine provider endpoint")
+
         async with httpx.AsyncClient() as client:
             response = await client.post(endpoint, headers=headers, json=payload)
-            
             if response.status_code != 200:
                 raise HTTPException(
                     status_code=response.status_code,
                     detail=f"AI provider error: {response.text}"
                 )
-            
             return response.json()
 
 ai_manager = AIProviderManager()
@@ -112,7 +122,7 @@ async def generate_content(
         response = await ai_manager.make_ai_request(
             provider, 
             request.prompt, 
-            request.model
+            request.model or ""
         )
         
         return AIResponse(
@@ -140,12 +150,12 @@ async def list_providers(
             "display_name": p.display_name,
             "is_active": p.is_active,
             "is_default": p.is_default,
-            "has_api_key": bool(p.api_key)
+            "has_api_key": bool(p.api_key),
         }
         for p in providers
     ]
 
-@router.post("/providers")
+@router.post("/providers", dependencies=[Depends(requires_roles("admin"))])
 async def create_provider(
     config: AIProviderConfig,
     db: AsyncSession = Depends(get_db),
@@ -160,7 +170,8 @@ async def create_provider(
     
     if existing:
         # Update existing provider
-        existing.api_key = config.api_key
+        if config.api_key:
+            existing.api_key = encrypt_value(config.api_key)
         existing.base_url = config.base_url
         existing.is_active = config.is_active
         existing.configuration = config.configuration
@@ -170,7 +181,7 @@ async def create_provider(
         provider = AIProvider(
             name=config.name,
             display_name=config.display_name,
-            api_key=config.api_key,
+            api_key=encrypt_value(config.api_key) if config.api_key else None,
             base_url=config.base_url,
             is_active=config.is_active,
             configuration=config.configuration

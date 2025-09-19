@@ -7,6 +7,7 @@ from datetime import datetime
 
 from ..database import get_db, Event, RSVP, Communication, User
 from ..auth import get_current_user
+from ..security import requires_roles
 from ..services.notification_service import notification_service
 
 router = APIRouter()
@@ -23,7 +24,7 @@ class NotificationStats(BaseModel):
     open_rate: float
     click_rate: float
 
-@router.post("/{event_id}/send-invitations")
+@router.post("/{event_id}/send-invitations", dependencies=[Depends(requires_roles("admin"))])
 async def send_event_invitations(
     event_id: int,
     request: SendInvitationsRequest,
@@ -73,7 +74,7 @@ async def send_event_invitations(
     
     return {"message": f"Invitations queued for {sent_count} recipients"}
 
-@router.post("/{event_id}/send-reminders")
+@router.post("/{event_id}/send-reminders", dependencies=[Depends(requires_roles("admin"))])
 async def send_event_reminders(
     event_id: int,
     background_tasks: BackgroundTasks,
@@ -199,7 +200,7 @@ async def get_notification_templates(
     
     return templates
 
-@router.post("/test-email")
+@router.post("/test-email", dependencies=[Depends(requires_roles("admin"))])
 async def send_test_email(
     recipient_email: EmailStr,
     current_user: User = Depends(get_current_user)
