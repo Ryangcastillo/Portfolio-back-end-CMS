@@ -26,14 +26,19 @@ class APIClient {
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<APIResponse<T>> {
     const url = `${this.baseURL}${endpoint}`
+    // If the caller provided a FormData body, don't force a JSON content-type
+    const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData
 
-    const headers: HeadersInit = {
-      "Content-Type": "application/json",
-      ...options.headers,
+    // Start with any headers the caller provided, then set Content-Type only when
+    // appropriate (i.e., not when sending FormData). This lets the browser set
+    // the multipart boundary automatically for file uploads, etc.
+    const headers: HeadersInit = { ...(options.headers || {}) }
+    if (!isFormData && !(headers && (headers as Record<string, string>)['Content-Type'])) {
+      ;(headers as Record<string, string>)['Content-Type'] = 'application/json'
     }
 
     if (this.token) {
-      headers.Authorization = `Bearer ${this.token}`
+      ;(headers as Record<string, string>).Authorization = `Bearer ${this.token}`
     }
 
     try {
@@ -42,15 +47,25 @@ class APIClient {
         headers,
       })
 
-      const data = await response.json()
+      // Some endpoints may return an empty body (204). Read the raw text and
+      // attempt JSON.parse only when there is content to avoid thrown errors.
+      const text = await response.text()
+      let data: any = undefined
+      try {
+        data = text ? JSON.parse(text) : undefined
+      } catch (err) {
+        // If response isn't JSON, keep the raw text
+        data = text
+      }
 
       if (!response.ok) {
-        return { error: data.detail || "An error occurred" }
+        const errMsg = data && (data.detail || data.error || data.message)
+        return { error: errMsg || 'An error occurred' }
       }
 
       return { data }
     } catch (error) {
-      return { error: "Network error occurred" }
+      return { error: 'Network error occurred' }
     }
   }
 
