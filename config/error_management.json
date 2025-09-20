@@ -1,0 +1,36 @@
+{
+  "cleanup_rules": {
+    "logs": {
+      "retention_days": 30,
+      "archive_threshold_mb": 100,
+      "compress_older_than_days": 7
+    },
+    "temp_files": {
+      "retention_hours": 24,
+      "excluded_patterns": ["*.lock", "*.pid", "node_modules", ".git", ".next"]
+    },
+    "error_artifacts": {
+      "retention_days": 7,
+      "max_file_size_mb": 100
+    },
+    "reports": {
+      "archive_older_than_days": 30,
+      "keep_latest": 5
+    }
+  },
+  "reorganization": {
+    "refactoring_reports": "reports/archive/refactoring/",
+    "system_logs": "logs/",
+    "documentation": "docs/misc/",
+    "scripts": "scripts/",
+    "cleanup_logs": "logs/cleanup/"
+  },
+  "error_management": {
+    "alert_threshold_per_hour": 10,
+    "critical_alert_threshold": 1,
+    "log_level": "INFO",
+    "retention_days": 90,
+    "enable_email_alerts": false,
+    "enable_slack_alerts": false
+  }
+}

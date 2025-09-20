@@ -17,9 +17,10 @@ from dotenv import load_dotenv
 
 from .database import init_db
 from .database import init_db
-from .routers import auth, content, dashboard, modules, settings, ai_assistant, events, notifications, public_portfolio, portfolio_admin
+from .routers import auth, content, dashboard, modules, settings, ai_assistant, events, notifications, public_portfolio, portfolio_admin, error_management
 from .config import get_settings
 from .logging_config import configure_logging
+from .services.error_management import error_manager
 
 load_dotenv()
 configure_logging()
@@ -58,6 +59,7 @@ app.include_router(settings.router, prefix="/api/settings", tags=["Settings"])
 app.include_router(ai_assistant.router, prefix="/api/ai", tags=["AI Assistant"])
 app.include_router(events.router, prefix="/api/events", tags=["Event Management"])
 app.include_router(notifications.router, prefix="/api/notifications", tags=["Notifications"])
+app.include_router(error_management.router, prefix="/api/errors", tags=["Error Management"])
 app.include_router(portfolio_admin.router, tags=["Portfolio Admin"])  # Auth required
 app.include_router(public_portfolio.router, tags=["Public Portfolio"])  # No auth required
 
@@ -73,22 +75,42 @@ logger = logging.getLogger("stitch.api")
 
 @app.exception_handler(Exception)
 async def unhandled_exception_handler(request, exc: Exception):
-    logger.error(
-        "unhandled_exception",
-        exc_info=exc,
-        extra={
-            "request_id": getattr(request.state, "request_id", None),
-            "path": request.url.path,
-            "method": request.method,
-        },
-    )
-    return {
-        "error": {
-            "message": "Internal server error",
-            "status": 500,
-            "request_id": getattr(request.state, "request_id", None),
+    # Use the error management system to capture the error
+    try:
+        error_record = await error_manager.capture_error(
+            error=exc,
+            request=request,
+            context={"handler": "unhandled_exception_handler"}
+        )
+        
+        return {
+            "error": {
+                "message": "Internal server error",
+                "status": 500,
+                "request_id": getattr(request.state, "request_id", None),
+                "error_id": str(error_record.id),
+                "timestamp": error_record.timestamp.isoformat()
+            }
         }
-    }
+    except Exception as capture_error:
+        # Fallback if error management fails
+        logger.error(
+            "unhandled_exception",
+            exc_info=exc,
+            extra={
+                "request_id": getattr(request.state, "request_id", None),
+                "path": request.url.path,
+                "method": request.method,
+                "error_management_failure": str(capture_error)
+            },
+        )
+        return {
+            "error": {
+                "message": "Internal server error",
+                "status": 500,
+                "request_id": getattr(request.state, "request_id", None),
+            }
+        }
 
 @app.get("/")
 async def root():
