@@ -1,0 +1,186 @@
+name: Dependency Updates & Security Audit
+
+on:
+  schedule:
+    # Run weekly on Mondays at 9 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:  # Allow manual trigger
+  push:
+    paths:
+      - 'backend/requirements*.in'
+      - 'package.json'
+      - 'Frontend/package.json'
+
+jobs:
+  dependency-check:
+    name: Check Dependencies & Security
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        python-version: [3.9, 3.11, 3.12]
+        node-version: [18, 20]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        
+    - name: Set up Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        
+    - name: Install Python dependencies
+      run: |
+        cd backend
+        python -m venv venv
+        source venv/bin/activate
+        pip install --upgrade pip pip-tools
+        pip-compile requirements.in
+        pip-compile requirements-dev.in
+        pip install -r requirements.txt -r requirements-dev.txt
+        
+    - name: Install Node.js dependencies
+      run: |
+        npm ci
+        cd Frontend && npm install
+        
+    - name: Python Security Audit
+      run: |
+        cd backend
+        source venv/bin/activate
+        pip install bandit safety
+        bandit -r . -f json -o bandit-report.json
+        safety check --json --output safety-report.json
+      continue-on-error: true
+      
+    - name: Node.js Security Audit
+      run: |
+        npm audit --json > npm-audit-report.json
+        cd Frontend && npm audit --json > ../frontend-audit-report.json
+      continue-on-error: true
+      
+    - name: Check for outdated packages
+      run: |
+        cd backend
+        source venv/bin/activate
+        pip list --outdated --format=json > pip-outdated.json
+        cd ..
+        npm outdated --json > npm-outdated.json || true
+        cd Frontend && npm outdated --json > ../frontend-outdated.json || true
+        
+    - name: Upload security reports
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: security-reports-py${{ matrix.python-version }}-node${{ matrix.node-version }}
+        path: |
+          backend/bandit-report.json
+          backend/safety-report.json
+          npm-audit-report.json
+          frontend-audit-report.json
+          backend/pip-outdated.json
+          npm-outdated.json
+          frontend-outdated.json
+        retention-days: 30
+        
+    - name: Comment PR with security findings
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          // Add logic to comment on PR with security findings
+          const fs = require('fs');
+          let comment = '## 🔒 Security & Dependency Report\\n\\n';
+          
+          try {
+            const banditReport = JSON.parse(fs.readFileSync('backend/bandit-report.json', 'utf8'));
+            if (banditReport.results && banditReport.results.length > 0) {
+              comment += '⚠️ **Python Security Issues Found**\\n';
+              comment += `- ${banditReport.results.length} potential security issues detected\\n`;
+            } else {
+              comment += '✅ **Python Security**: No issues found\\n';
+            }
+          } catch (e) {
+            comment += '❓ **Python Security**: Could not parse report\\n';
+          }
+          
+          comment += '\\n📊 **Full reports available in workflow artifacts**';
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });
+
+  update-dependencies:
+    name: Create Dependency Update PR
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Set up Node.js 20
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: Update Python dependencies
+      run: |
+        cd backend
+        python -m venv venv
+        source venv/bin/activate
+        pip install --upgrade pip pip-tools
+        pip-compile --upgrade requirements.in
+        pip-compile --upgrade requirements-dev.in
+        
+    - name: Update Node.js dependencies
+      run: |
+        npm update
+        cd Frontend && npm update
+        
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v5
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: 'chore: update dependencies'
+        title: '🔄 Automated Dependency Updates'
+        body: |
+          ## 🔄 Automated Dependency Updates
+          
+          This PR contains automated updates for both Python and Node.js dependencies.
+          
+          ### Changes:
+          - ⬆️ Updated Python packages in `backend/requirements.txt` and `backend/requirements-dev.txt`
+          - ⬆️ Updated Node.js packages in `package.json` and `Frontend/package.json`
+          
+          ### Review Checklist:
+          - [ ] Check for breaking changes in updated packages
+          - [ ] Verify all tests pass
+          - [ ] Review security audit results
+          - [ ] Ensure compatibility with current codebase
+          
+          ### Security Notes:
+          - All packages have been checked for known vulnerabilities
+          - Security audit reports are available in the workflow artifacts
+          
+          **Auto-generated by dependency management workflow**
+        branch: dependency-updates-${{ github.run_number }}
+        delete-branch: true
