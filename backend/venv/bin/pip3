@@ -1,4 +1,4 @@
-#!/Users/ryan/Desktop/CMS-vercel/CMS/CMS/backend/venv/bin/python
+#!/home/runner/work/CMS/CMS/backend/venv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys
