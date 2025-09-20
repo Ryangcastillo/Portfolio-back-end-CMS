@@ -11,7 +11,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Save, Globe, Palette, Mail, Building2 } from "lucide-react"
-import { ImageIcon } from "lucide-react"
 import { apiClient } from "@/lib/api-client"
 
 interface SiteConfig {
@@ -199,7 +198,7 @@ export function SiteSettings() {
               <div className="flex items-center gap-4">
                 {config.company_logo && (
                   <div className="w-16 h-16 border rounded-lg overflow-hidden bg-muted flex items-center justify-center">
-                    <ImageIcon
+                    <img
                       src={config.company_logo || "/placeholder.svg"}
                       alt="Company Logo"
                       className="w-full h-full object-contain"
@@ -226,7 +225,7 @@ export function SiteSettings() {
               <div className="flex items-center gap-4">
                 {config.site_logo && (
                   <div className="w-16 h-16 border rounded-lg overflow-hidden bg-muted flex items-center justify-center">
-                    <ImageIcon
+                    <img
                       src={config.site_logo || "/placeholder.svg"}
                       alt="Site Logo"
                       className="w-full h-full object-contain"
@@ -251,7 +250,7 @@ export function SiteSettings() {
               <div className="flex items-center gap-4">
                 {config.site_favicon && (
                   <div className="w-8 h-8 border rounded overflow-hidden bg-muted flex items-center justify-center">
-                    <ImageIcon
+                    <img
                       src={config.site_favicon || "/placeholder.svg"}
                       alt="Favicon"
                       className="w-full h-full object-contain"

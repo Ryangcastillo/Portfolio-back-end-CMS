@@ -397,6 +397,39 @@ class APIClient {
   async getEventAnalytics(eventId: number) {
     return this.request<any>(`/events/${eventId}/analytics`)
   }
+
+  async getAllRSVPs() {
+    return this.request<any>(`/events/all-rsvps`)
+  }
+
+  async getNotificationStats(eventId: number) {
+    return this.request<any>(`/notifications/${eventId}/notification-stats`)
+  }
+
+  async getCommunications(eventId: number) {
+    return this.request<any>(`/notifications/${eventId}/communications`)
+  }
+
+  async sendEventInvitations(eventId: number, emails: string[]) {
+    return this.request<any>(`/notifications/${eventId}/send-invitations`, {
+      method: "POST",
+      body: JSON.stringify({ emails }),
+    })
+  }
+
+  async sendEventReminders(eventId: number, reminderData: any) {
+    return this.request<any>(`/notifications/${eventId}/send-reminders`, {
+      method: "POST",
+      body: JSON.stringify(reminderData),
+    })
+  }
+
+  async testEmail(emailData: any) {
+    return this.request<any>("/notifications/test-email", {
+      method: "POST",
+      body: JSON.stringify(emailData),
+    })
+  }
 }
 
 export const apiClient = new APIClient()

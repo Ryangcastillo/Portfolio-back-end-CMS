@@ -213,7 +213,7 @@ class NotificationService:
                     <p><strong>Time until event:</strong> {days_before} day{'s' if days_before != 1 else ''}</p>
                 </div>
                 
-                {f'<div class="status status-{rsvp.status}"><strong>Your RSVP Status:</strong> {rsvp.status.title()}</div>' if rsvp.status != "pending" else ''}
+                {f"<div class=\"status status-{rsvp.status}\"><strong>Your RSVP Status:</strong> {rsvp.status.title()}</div>" if rsvp.status != "pending" else ""}
                 
                 {rsvp_links}
                 

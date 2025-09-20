@@ -131,7 +131,7 @@ async def create_refresh_token(db: AsyncSession, user_id: int) -> RefreshTokenDa
 async def rotate_refresh_token(db: AsyncSession, token: str) -> Optional[RefreshTokenData]:
     hashed = _hash(token)
     res = await db.execute(select(RefreshToken).where(RefreshToken.token_hash == hashed))
-    rt: RefreshToken | None = res.scalar_one_or_none()
+    rt: Optional[RefreshToken] = res.scalar_one_or_none()
     if not rt or rt.revoked_at is not None or rt.expires_at < datetime.utcnow():
         return None
     # Revoke old
@@ -145,7 +145,7 @@ async def rotate_refresh_token(db: AsyncSession, token: str) -> Optional[Refresh
 async def revoke_refresh_token(db: AsyncSession, token: str) -> bool:
     hashed = _hash(token)
     res = await db.execute(select(RefreshToken).where(RefreshToken.token_hash == hashed))
-    rt: RefreshToken | None = res.scalar_one_or_none()
+    rt: Optional[RefreshToken] = res.scalar_one_or_none()
     if not rt or rt.revoked_at is not None:
         return False
     rt.revoked_at = datetime.utcnow()

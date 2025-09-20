@@ -42,21 +42,21 @@ import {
 import { toast } from 'sonner'
 
 const PortfolioManager = () => {
-  const [profileData, setProfileData] = useState(null)
-  const [skills, setSkills] = useState([])
-  const [projects, setProjects] = useState([])
-  const [stats, setStats] = useState([])
-  const [categories, setCategories] = useState([])
-  const [experience, setExperience] = useState([])
-  const [testimonials, setTestimonials] = useState([])
+  const [profileData, setProfileData] = useState<any>(null)
+  const [skills, setSkills] = useState<any[]>([])
+  const [projects, setProjects] = useState<any[]>([])
+  const [stats, setStats] = useState<any[]>([])
+  const [categories, setCategories] = useState<any[]>([])
+  const [experience, setExperience] = useState<any[]>([])
+  const [testimonials, setTestimonials] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [editingItem, setEditingItem] = useState(null)
+  const [editingItem, setEditingItem] = useState<any>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
 
   // Form states for different sections
-  const [profileForm, setProfileForm] = useState({})
-  const [skillForm, setSkillForm] = useState({})
-  const [projectForm, setProjectForm] = useState({})
+  const [profileForm, setProfileForm] = useState<any>({})
+  const [skillForm, setSkillForm] = useState<any>({})
+  const [projectForm, setProjectForm] = useState<any>({})
 
   useEffect(() => {
     fetchAllData()
@@ -94,7 +94,7 @@ const PortfolioManager = () => {
     }
   }
 
-  const handleSaveProfile = async (formData) => {
+  const handleSaveProfile = async (formData: any) => {
     try {
       const response = await fetch('/api/admin/portfolio/profile', {
         method: 'POST',
@@ -118,7 +118,7 @@ const PortfolioManager = () => {
     }
   }
 
-  const handleSaveSkill = async (formData) => {
+  const handleSaveSkill = async (formData: any) => {
     try {
       const method = editingItem ? 'PUT' : 'POST'
       const url = editingItem 
@@ -149,7 +149,7 @@ const PortfolioManager = () => {
     }
   }
 
-  const handleDeleteItem = async (type, id) => {
+  const handleDeleteItem = async (type: string, id: any) => {
     if (!confirm('Are you sure you want to delete this item?')) return
 
     try {
