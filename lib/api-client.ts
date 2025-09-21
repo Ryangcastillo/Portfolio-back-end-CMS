@@ -27,9 +27,9 @@ class APIClient {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<APIResponse<T>> {
     const url = `${this.baseURL}${endpoint}`
 
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       "Content-Type": "application/json",
-      ...options.headers,
+      ...(options.headers as Record<string, string>),
     }
 
     if (this.token) {
@@ -399,6 +399,40 @@ class APIClient {
 
   async getPortfolioExperience() {
     return this.request<any>(`/v1/portfolio/experience`)
+  }
+
+  // RSVP Methods
+  async getAllRsvps() {
+    return this.request<any[]>(`/events/all-rsvps`)
+  }
+
+  // Notification Methods
+  async getNotificationStats(eventId: number) {
+    return this.request<any>(`/notifications/${eventId}/notification-stats`)
+  }
+
+  async getCommunications(eventId: number) {
+    return this.request<any[]>(`/notifications/${eventId}/communications`)
+  }
+
+  async sendNotificationInvitations(eventId: number, recipientEmails: string[]) {
+    return this.request<any>(`/notifications/${eventId}/send-invitations`, {
+      method: "POST",
+      body: JSON.stringify({ recipient_emails: recipientEmails }),
+    })
+  }
+
+  async sendReminders(eventId: number) {
+    return this.request<any>(`/notifications/${eventId}/send-reminders`, {
+      method: "POST",
+    })
+  }
+
+  async sendTestEmail(recipientEmail: string) {
+    return this.request<any>("/notifications/test-email", {
+      method: "POST",
+      body: JSON.stringify({ recipient_email: recipientEmail }),
+    })
   }
 }
 
