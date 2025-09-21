@@ -20,6 +20,7 @@ import {
   Bell,
   User,
   Calendar,
+  Briefcase,
 } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
 
@@ -52,6 +53,11 @@ const navigation = [
     name: "Analytics",
     href: "/analytics",
     icon: BarChart3,
+  },
+  {
+    name: "Portfolio Admin",
+    href: "/portfolio-admin",
+    icon: Briefcase,
   },
   {
     name: "Modules",

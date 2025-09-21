@@ -382,6 +382,24 @@ class APIClient {
   async getEventAnalytics(eventId: number) {
     return this.request<any>(`/events/${eventId}/analytics`)
   }
+
+  // Portfolio endpoints
+  async getPortfolioSummary() {
+    return this.request<any>(`/v1/portfolio/summary`)
+  }
+
+  async getPortfolioProjects(featuredOnly = false) {
+    const query = featuredOnly ? '?featured_only=true' : ''
+    return this.request<any>(`/v1/portfolio/projects${query}`)
+  }
+
+  async getPortfolioSkills() {
+    return this.request<any>(`/v1/portfolio/skills`)
+  }
+
+  async getPortfolioExperience() {
+    return this.request<any>(`/v1/portfolio/experience`)
+  }
 }
 
 export const apiClient = new APIClient()
