@@ -27,9 +27,9 @@ class APIClient {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<APIResponse<T>> {
     const url = `${this.baseURL}${endpoint}`
 
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       "Content-Type": "application/json",
-      ...options.headers,
+      ...(options.headers as Record<string, string>),
     }
 
     if (this.token) {
@@ -381,6 +381,58 @@ class APIClient {
 
   async getEventAnalytics(eventId: number) {
     return this.request<any>(`/events/${eventId}/analytics`)
+  }
+
+  // RSVP Methods
+  async getAllRsvps() {
+    return this.request<any[]>(`/events/all-rsvps`)
+  }
+
+  // Notification Methods
+  async getNotificationStats(eventId: number) {
+    return this.request<{
+      total_sent: number
+      total_delivered: number
+      total_opened: number
+      total_clicked: number
+      bounce_rate: number
+      open_rate: number
+      click_rate: number
+    }>(`/notifications/${eventId}/notification-stats`)
+  }
+
+  async getCommunications(eventId: number) {
+    return this.request<Array<{
+      id: number
+      type: string
+      subject: string
+      recipient_email: string
+      recipient_name: string
+      sent_at: string
+      delivery_status: string
+      opened_at?: string
+      clicked_at?: string
+    }>>(`/notifications/${eventId}/communications`)
+  }
+
+  async sendNotificationInvitations(eventId: number, recipientEmails: string[]) {
+    return this.request<any>(`/notifications/${eventId}/send-invitations`, {
+      method: "POST",
+      body: JSON.stringify({ recipient_emails: recipientEmails }),
+    })
+  }
+
+  async sendReminders(eventId: number) {
+    return this.request<any>(`/notifications/${eventId}/send-reminders`, {
+      method: "POST",
+    })
+  }
+
+  async sendTestEmail(recipientEmail: string) {
+    return this.request<any>("/notifications/test-email", {
+      method: "POST",
+      body: JSON.stringify({ recipient_email: recipientEmail }),
+    })
   }
 }
 

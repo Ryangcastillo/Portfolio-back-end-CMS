@@ -54,8 +54,8 @@ export function NotificationPanel({ eventId }: NotificationPanelProps) {
     setIsLoading(true)
     try {
       const [statsResponse, communicationsResponse] = await Promise.all([
-        apiClient.request(`/notifications/${eventId}/notification-stats`, { method: "GET" }),
-        apiClient.request(`/notifications/${eventId}/communications`, { method: "GET" }),
+        apiClient.getNotificationStats(eventId),
+        apiClient.getCommunications(eventId),
       ])
 
       if (statsResponse.data) setStats(statsResponse.data)
@@ -77,10 +77,7 @@ export function NotificationPanel({ eventId }: NotificationPanelProps) {
         .map((email) => email.trim())
         .filter((email) => email && email.includes("@"))
 
-      const response = await apiClient.request(`/notifications/${eventId}/send-invitations`, {
-        method: "POST",
-        body: JSON.stringify({ recipient_emails: emails }),
-      })
+      const response = await apiClient.sendNotificationInvitations(eventId, emails)
 
       if (response.data) {
         setEmailList("")
@@ -96,9 +93,7 @@ export function NotificationPanel({ eventId }: NotificationPanelProps) {
   const handleSendReminders = async () => {
     setIsSending(true)
     try {
-      const response = await apiClient.request(`/notifications/${eventId}/send-reminders`, {
-        method: "POST",
-      })
+      const response = await apiClient.sendReminders(eventId)
 
       if (response.data) {
         loadNotificationData()
@@ -114,10 +109,7 @@ export function NotificationPanel({ eventId }: NotificationPanelProps) {
     if (!testEmail.trim()) return
 
     try {
-      const response = await apiClient.request("/notifications/test-email", {
-        method: "POST",
-        body: JSON.stringify({ recipient_email: testEmail }),
-      })
+      const response = await apiClient.sendTestEmail(testEmail)
 
       if (response.data) {
         setTestEmail("")

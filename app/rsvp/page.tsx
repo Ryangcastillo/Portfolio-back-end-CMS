@@ -61,7 +61,7 @@ export default function RSVPManagementPage() {
     try {
       const [eventsResponse, rsvpsResponse] = await Promise.all([
         apiClient.getEvents(),
-        apiClient.request("/events/all-rsvps", { method: "GET" }),
+        apiClient.getAllRsvps(),
       ])
 
       if (eventsResponse.data) setEvents(eventsResponse.data)
