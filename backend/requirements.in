@@ -2,23 +2,24 @@
 # Production-ready FastAPI backend with portfolio management
 
 # Core Framework
-fastapi>=0.104.1
-uvicorn[standard]>=0.24.0
+fastapi>=0.115.0  # Updated for security improvements
+uvicorn[standard]>=0.36.0  # Updated for security patches
 
 # Database & ORM  
-sqlalchemy>=2.0.23
-alembic>=1.13.0
+sqlalchemy>=2.0.35  # Updated for security
+alembic>=1.13.3  # Updated version
 asyncpg>=0.29.0  # PostgreSQL async driver
 
-# Authentication & Security
-python-jose[cryptography]>=3.3.0
+# Authentication & Security  
+python-jose[cryptography]>=3.5.0  # Updated for CVE fixes
 passlib[bcrypt]>=1.7.4
-python-multipart>=0.0.6
+python-multipart>=0.0.20  # Updated for security fixes
+cryptography>=44.0.1  # Explicit version for security patches
 
 # Environment & Configuration
 python-dotenv>=1.0.0
-pydantic>=2.5.0
-pydantic-settings>=2.1.0
+pydantic>=2.11.9  # Updated for security enhancements
+pydantic-settings>=2.10.1  # Updated for security fixes
 
 # HTTP & CORS
 httpx>=0.25.2
