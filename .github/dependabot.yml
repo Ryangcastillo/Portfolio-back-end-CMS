@@ -1,0 +1,78 @@
+version: 2
+updates:
+  # Backend Python dependencies
+  - package-ecosystem: "pip"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    assignees:
+      - "Ryangcastillo"
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "backend"
+      - "python"
+    open-pull-requests-limit: 5
+    
+  # Admin Interface Node.js dependencies (Next.js)
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"  
+      day: "monday"
+      time: "09:30"
+    assignees:
+      - "Ryangcastillo"
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "frontend"
+      - "admin-interface"
+      - "nextjs"
+    open-pull-requests-limit: 5
+    
+  # Frontend Modules Node.js dependencies (React)
+  - package-ecosystem: "npm"
+    directory: "/Frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday" 
+      time: "10:00"
+    assignees:
+      - "Ryangcastillo"
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "frontend"
+      - "frontend-modules"
+      - "react"
+    open-pull-requests-limit: 5
+    
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      day: "monday"
+      time: "10:30"
+    assignees:
+      - "Ryangcastillo"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "ci-cd"
+      - "github-actions"
+    open-pull-requests-limit: 2

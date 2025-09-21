@@ -43,7 +43,7 @@ def mask_secret_value(value: Any) -> Any:
         return f"****{value[-4:]}"
     return "****"
 
-def mask_secrets(obj: Any, key_hint: str | None = None) -> Any:
+def mask_secrets(obj: Any, key_hint: Optional[str] = None) -> Any:
     """Recursively mask secret-looking values.
 
     Rules: if key contains any sensitive substring (case-insensitive) -> mask value.
@@ -53,9 +53,7 @@ def mask_secrets(obj: Any, key_hint: str | None = None) -> Any:
         lowered = (key_hint or "").lower()
         should_mask = any(k in lowered for k in SENSITIVE_KEY_SUBSTRINGS)
         if isinstance(obj, dict):
-            return {
-                k: mask_secrets(v, k) for k, v in obj.items()
-            }
+            return {k: mask_secrets(v, k) for k, v in obj.items()}
         if isinstance(obj, list):
             return [mask_secrets(item, key_hint) for item in obj]
         if should_mask:

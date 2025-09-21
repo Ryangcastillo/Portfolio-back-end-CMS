@@ -98,12 +98,12 @@ class NotificationService:
                 
                 <div class="event-details">
                     <h2>{event.title}</h2>
-                    {f'<p><strong>Description:</strong> {event.description}</p>' if event.description else ''}
+                    {f"<p><strong>Description:</strong> {event.description}</p>" if event.description else ''}
                     <p><strong>Date:</strong> {event.start_date.strftime('%B %d, %Y at %I:%M %p')}</p>
-                    {f'<p><strong>End Date:</strong> {event.end_date.strftime('%B %d, %Y at %I:%M %p')}</p>' if event.end_date else ''}
-                    {f'<p><strong>Location:</strong> {event.location}</p>' if event.location else ''}
+                    {f"<p><strong>End Date:</strong> {event.end_date.strftime('%B %d, %Y at %I:%M %p')}</p>" if event.end_date else ''}
+                    {f"<p><strong>Location:</strong> {event.location}</p>" if event.location else ''}
                     <p><strong>Event Type:</strong> {event.event_type.title()}</p>
-                    {f'<p><strong>RSVP Deadline:</strong> {event.rsvp_deadline.strftime('%B %d, %Y at %I:%M %p')}</p>' if event.rsvp_deadline else ''}
+                    {f"<p><strong>RSVP Deadline:</strong> {event.rsvp_deadline.strftime('%B %d, %Y at %I:%M %p')}</p>" if event.rsvp_deadline else ''}
                 </div>
                 
                 <div class="buttons">
@@ -206,10 +206,10 @@ class NotificationService:
                 
                 <div class="event-details">
                     <h2>{event.title}</h2>
-                    {f'<p><strong>Description:</strong> {event.description}</p>' if event.description else ''}
+                    {f"<p><strong>Description:</strong> {event.description}</p>" if event.description else ''}
                     <p><strong>Date:</strong> {event.start_date.strftime('%B %d, %Y at %I:%M %p')}</p>
-                    {f'<p><strong>End Date:</strong> {event.end_date.strftime('%B %d, %Y at %I:%M %p')}</p>' if event.end_date else ''}
-                    {f'<p><strong>Location:</strong> {event.location}</p>' if event.location else ''}
+                    {f"<p><strong>End Date:</strong> {event.end_date.strftime('%B %d, %Y at %I:%M %p')}</p>" if event.end_date else ''}
+                    {f"<p><strong>Location:</strong> {event.location}</p>" if event.location else ''}
                     <p><strong>Time until event:</strong> {days_before} day{'s' if days_before != 1 else ''}</p>
                 </div>
                 
@@ -293,16 +293,16 @@ class NotificationService:
                 <div class="event-details">
                     <h2>{event.title}</h2>
                     <p><strong>Your Response:</strong> {rsvp.status.title()}</p>
-                    {f'<p><strong>Guest Count:</strong> {rsvp.guest_count}</p>' if rsvp.guest_count > 1 else ''}
-                    {f'<p><strong>Dietary Restrictions:</strong> {rsvp.dietary_restrictions}</p>' if rsvp.dietary_restrictions else ''}
-                    {f'<p><strong>Special Requests:</strong> {rsvp.special_requests}</p>' if rsvp.special_requests else ''}
+                    {f"<p><strong>Guest Count:</strong> {rsvp.guest_count}</p>" if rsvp.guest_count > 1 else ''}
+                    {f"<p><strong>Dietary Restrictions:</strong> {rsvp.dietary_restrictions}</p>" if rsvp.dietary_restrictions else ''}
+                    {f"<p><strong>Special Requests:</strong> {rsvp.special_requests}</p>" if rsvp.special_requests else ''}
                     
                     <hr style="margin: 20px 0;">
                     
                     <h3>Event Details</h3>
                     <p><strong>Date:</strong> {event.start_date.strftime('%B %d, %Y at %I:%M %p')}</p>
-                    {f'<p><strong>End Date:</strong> {event.end_date.strftime('%B %d, %Y at %I:%M %p')}</p>' if event.end_date else ''}
-                    {f'<p><strong>Location:</strong> {event.location}</p>' if event.location else ''}
+                    {f"<p><strong>End Date:</strong> {event.end_date.strftime('%B %d, %Y at %I:%M %p')}</p>" if event.end_date else ''}
+                    {f"<p><strong>Location:</strong> {event.location}</p>" if event.location else ''}
                 </div>
                 
                 <div class="footer">

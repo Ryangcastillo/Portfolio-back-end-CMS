@@ -1,0 +1,242 @@
+# Agent Configuration System
+# Environment-specific settings for AI agents
+
+# Production AI Agent Configurations
+procurement_assistant:
+  id: procurement_assistant  
+  title: "Procurement Assistant Chatbot"
+  category: conversational_ai
+  description: "Intelligent chatbot automating vendor inquiries and procurement process guidance"
+  purpose: "Reduce response times for vendor inquiries and provide 24/7 support"
+  
+  # Core Settings
+  enabled: true
+  auto_start: true
+  max_concurrent_sessions: 50
+  session_timeout: 1800  # 30 minutes
+  
+  # LLM Configuration
+  llm:
+    provider: openai
+    model: gpt-4
+    temperature: 0.7
+    max_tokens: 500
+    timeout: 30
+    
+  # Vector Database
+  vector_db:
+    provider: pinecone
+    index_name: procurement-knowledge
+    environment: production
+    dimension: 1536
+    
+  # Knowledge Base
+  knowledge_base:
+    sources:
+      - type: documents
+        path: "/data/procurement/policies"
+      - type: database  
+        connection: "procurement_db"
+      - type: api
+        endpoint: "internal.procurement.api"
+        
+  # Escalation Rules
+  escalation:
+    confidence_threshold: 0.7
+    keywords:
+      - urgent
+      - emergency
+      - complaint
+      - legal
+      - dispute
+    auto_ticket_creation: true
+    notify_humans: true
+    
+  # Performance Targets
+  targets:
+    response_time: 2.0  # seconds
+    accuracy: 0.92
+    automation_rate: 0.75
+    availability: 0.99
+
+report_generation:
+  id: report_generation
+  title: "Automated Report Generation Agent" 
+  category: document_automation
+  description: "AI agent that automatically generates comprehensive business reports"
+  purpose: "Eliminate manual report creation processes and enable real-time insights"
+  
+  enabled: true
+  auto_start: true
+  
+  # LLM Configuration
+  llm:
+    provider: openai
+    model: gpt-3.5-turbo
+    temperature: 0.3
+    max_tokens: 2000
+    
+  # Data Sources
+  data_sources:
+    - type: database
+      name: analytics_db
+      tables: ["sales", "customers", "products"]
+    - type: api
+      name: crm_api
+      endpoint: "https://api.crm.company.com"
+    - type: files
+      path: "/data/exports/"
+      formats: ["csv", "json", "xlsx"]
+      
+  # Report Templates
+  templates:
+    monthly_sales:
+      sections: ["executive_summary", "sales_metrics", "trends", "recommendations"]
+      charts: ["line_chart", "bar_chart", "pie_chart"]
+    quarterly_review:
+      sections: ["performance", "goals", "challenges", "next_quarter"]
+      
+  # Scheduling
+  schedule:
+    monthly_reports: "0 9 1 * *"  # First day of month at 9 AM
+    weekly_summaries: "0 9 * * MON"  # Every Monday at 9 AM
+    
+  targets:
+    generation_time: 120  # seconds
+    accuracy: 0.95
+    consistency: 0.98
+
+expense_approval:
+  id: expense_approval
+  title: "Expense Approval Workflow Agent"
+  category: process_automation
+  description: "Intelligent agent for expense claim processing with document analysis"
+  purpose: "Streamline expense approval processes and ensure policy compliance"
+  
+  enabled: true
+  auto_start: false  # Manual start for pilot phase
+  
+  # OCR Configuration
+  ocr:
+    provider: google_cloud_vision
+    confidence_threshold: 0.85
+    supported_formats: ["pdf", "jpg", "png", "tiff"]
+    
+  # Policy Rules
+  policy_rules:
+    max_meal_amount: 75.00
+    max_hotel_amount: 300.00
+    max_transport_amount: 500.00
+    require_receipt_over: 25.00
+    auto_approve_under: 100.00
+    
+  # Workflow Configuration  
+  workflow:
+    approval_levels:
+      - amount_threshold: 100
+        approver: "manager"
+      - amount_threshold: 1000  
+        approver: "director"
+      - amount_threshold: 5000
+        approver: "finance_team"
+        
+  # Integration
+  systems:
+    erp: "sap_integration"
+    hr: "workday_api"
+    accounting: "quickbooks_api"
+    
+  targets:
+    processing_time: 30  # seconds
+    accuracy: 0.94
+    compliance_rate: 0.99
+    automation_rate: 0.80
+
+multi_agent_orchestration:
+  id: multi_agent_orchestration
+  title: "Multi-Agent Data Pipeline Orchestration"
+  category: agent_orchestration
+  description: "Coordinated system of AI agents managing complex data processing"
+  purpose: "Enable scalable, fault-tolerant data processing through intelligent coordination"
+  
+  enabled: false  # Development phase
+  auto_start: false
+  
+  # Orchestration Framework
+  orchestration:
+    framework: crew_ai
+    max_agents: 10
+    task_queue_size: 1000
+    health_check_interval: 30
+    
+  # Agent Pool Configuration
+  agent_pool:
+    data_extractors: 3
+    data_transformers: 2  
+    data_validators: 2
+    data_loaders: 1
+    
+  # Resource Management
+  resources:
+    max_cpu_per_agent: 2.0
+    max_memory_per_agent: "4GB"
+    shared_storage: "/shared/data"
+    
+  # Monitoring
+  monitoring:
+    metrics_collection: true
+    performance_tracking: true
+    error_reporting: true
+    alerting_enabled: true
+    
+  targets:
+    reliability: 0.995
+    throughput_multiplier: 10
+    recovery_time: 300  # seconds
+
+contract_analysis:
+  id: contract_analysis  
+  title: "Intelligent Contract Analysis Agent"
+  category: document_intelligence
+  description: "AI agent for automated contract review and risk assessment"
+  purpose: "Accelerate contract review processes and identify potential risks"
+  
+  enabled: true
+  auto_start: false  # Beta phase - manual start
+  
+  # LLM Configuration
+  llm:
+    provider: anthropic
+    model: claude-3-sonnet
+    temperature: 0.2
+    max_tokens: 4000
+    
+  # Document Processing
+  document_processing:
+    supported_formats: ["pdf", "docx", "txt"]
+    max_file_size: "10MB"
+    ocr_enabled: true
+    
+  # Analysis Modules
+  analysis:
+    risk_assessment:
+      enabled: true
+      categories: ["financial", "legal", "operational", "compliance"]
+    clause_extraction:
+      enabled: true
+      types: ["termination", "payment", "liability", "confidentiality"]
+    compliance_check:
+      enabled: true
+      frameworks: ["gdpr", "sox", "industry_specific"]
+      
+  # Legal Knowledge Base
+  legal_kb:
+    provider: weaviate
+    index_name: legal-contracts
+    update_frequency: "daily"
+    
+  targets:
+    analysis_time: 300  # seconds for average contract
+    accuracy: 0.89
+    coverage: 0.95
+    consistency: 0.97

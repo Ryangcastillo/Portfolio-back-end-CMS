@@ -1,0 +1,14 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Learning Tools",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/learning_tools.py",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "args": ["status"]
+    }
+  ]
+}
