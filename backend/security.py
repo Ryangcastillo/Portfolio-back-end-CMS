@@ -21,7 +21,7 @@ settings = get_settings()
 logger = logging.getLogger("stitch.security")
 
 # Context variable for request id to enrich logs even outside middleware scope
-request_id_ctx: ContextVar[Optional[str]] = ContextVar("request_id", default=None)
+from .logging_config import request_id_ctx, request_start_time_ctx, get_security_logger, get_request_logger
 
 # ===== Secret Masking Utility =====
 SENSITIVE_KEY_SUBSTRINGS = [
@@ -178,43 +178,119 @@ def create_access_token_claims(user: User):
 from starlette.middleware.base import BaseHTTPMiddleware
 
 class RequestIDMiddleware(BaseHTTPMiddleware):
+    """Enhanced request ID middleware with structured logging"""
+    
     async def dispatch(self, request: Request, call_next):
         request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
         request.state.request_id = request_id
-        # set context var for downstream logging
-        token = request_id_ctx.set(request_id)
+        
+        # Set context vars for downstream logging
+        request_id_token = request_id_ctx.set(request_id)
+        start_time = time.perf_counter() 
+        start_time_token = request_start_time_ctx.set(start_time)
+        
+        # Get request logger with context
+        request_logger = get_request_logger("request_processing")
+        
+        request_logger.info(
+            "request_started",
+            method=request.method,
+            path=request.url.path,
+            query_params=str(request.query_params),
+            client_ip=request.client.host if request.client else None,
+            user_agent=request.headers.get("user-agent", ""),
+        )
+        
         try:
             response = await call_next(request)
+            duration_ms = (time.perf_counter() - start_time) * 1000
+            
+            request_logger.info(
+                "request_completed",
+                status_code=response.status_code,
+                duration_ms=round(duration_ms, 2),
+            )
+            
+            return response
+        except Exception as e:
+            duration_ms = (time.perf_counter() - start_time) * 1000
+            request_logger.error(
+                "request_failed",
+                error=str(e),
+                error_type=type(e).__name__,
+                duration_ms=round(duration_ms, 2),
+            )
+            raise
         finally:
-            # reset context var to previous value to avoid leaking across requests
-            request_id_ctx.reset(token)
-        response.headers["X-Request-ID"] = request_id
-        return response
+            # Reset context vars to prevent leaking across requests
+            request_id_ctx.reset(request_id_token)
+            request_start_time_ctx.reset(start_time_token)
+            # Add request ID to response header
+            if 'response' in locals():
+                response.headers["X-Request-ID"] = request_id
 
 # ===== Metrics Middleware (basic stub) =====
 import time
 
 class MetricsMiddleware(BaseHTTPMiddleware):
+    """Enhanced metrics middleware with structured logging and performance tracking"""
+    
     async def dispatch(self, request: Request, call_next):
         start = time.perf_counter()
         response = None
+        metrics_logger = get_request_logger("metrics_collection")
+        
         try:
             response = await call_next(request)
             return response
+        except Exception as e:
+            # Log exception metrics
+            duration = (time.perf_counter() - start) * 1000
+            metrics_logger.error(
+                "request_exception",
+                path=request.url.path,
+                method=request.method,
+                duration_ms=round(duration, 2),
+                error_type=type(e).__name__,
+                error_message=str(e)
+            )
+            raise
         finally:
             duration = (time.perf_counter() - start) * 1000
             path = request.url.path
-            status_code = getattr(response, "status_code", None)
-            logger.info(
-                "request_completed",
-                extra={
-                    "request_id": getattr(request.state, "request_id", None),
-                    "path": path,
-                    "method": request.method,
-                    "status_code": status_code,
-                    "duration_ms": round(duration, 2),
-                },
-            )
+            status_code = getattr(response, "status_code", None) if response else None
+            
+            # Determine log level based on performance and status
+            log_level = "info"
+            if duration > 1000:  # Slow requests
+                log_level = "warning"
+            elif duration > 5000:  # Very slow requests
+                log_level = "error"
+            elif status_code and status_code >= 500:  # Server errors
+                log_level = "error"
+            elif status_code and status_code >= 400:  # Client errors
+                log_level = "warning"
+            
+            # Enhanced metrics logging
+            log_data = {
+                "path": path,
+                "method": request.method,
+                "status_code": status_code,
+                "duration_ms": round(duration, 2),
+                "path_template": getattr(request.scope.get("route"), "path", path) if "route" in request.scope else path,
+            }
+            
+            # Add performance categories
+            if duration > 5000:
+                log_data["performance_category"] = "critical"
+            elif duration > 1000:
+                log_data["performance_category"] = "slow"
+            elif duration > 100:
+                log_data["performance_category"] = "normal"
+            else:
+                log_data["performance_category"] = "fast"
+            
+            getattr(metrics_logger, log_level)("request_completed", **log_data)
 
 # ===== Global Error Handling Utilities =====
 from fastapi.responses import JSONResponse

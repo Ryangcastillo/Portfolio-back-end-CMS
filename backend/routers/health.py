@@ -16,8 +16,9 @@ from datetime import datetime, timezone
 
 from ..database import get_db, engine
 from ..config import get_settings
+from ..logging_config import get_logger, log_performance, PerformanceContext
 
-logger = logging.getLogger("stitch.health")
+logger = get_logger("stitch.health")
 router = APIRouter()
 
 class HealthStatus(BaseModel):
@@ -47,6 +48,7 @@ class ResourceUsage(BaseModel):
 # Track application start time for uptime calculation
 _app_start_time = time.time()
 
+@log_performance("database_health_check", threshold_ms=50.0)
 async def check_database_health(db: AsyncSession) -> DatabaseHealth:
     """Check database connectivity and response time"""
     try:
@@ -61,7 +63,7 @@ async def check_database_health(db: AsyncSession) -> DatabaseHealth:
             response_time_ms=round(response_time, 2)
         )
     except Exception as e:
-        logger.error(f"Database health check failed: {str(e)}")
+        logger.error("database_health_check_failed", error=str(e), duration_ms=round((time.time() - start_time) * 1000, 2))
         return DatabaseHealth(
             status="unhealthy",
             error=str(e)
@@ -90,12 +92,14 @@ async def check_external_services() -> list[ExternalServiceHealth]:
                 response_time = (time.time() - start_time) * 1000
                 
                 if response.status_code == 200:
+                    logger.debug("external_service_healthy", service=name, response_time_ms=round(response_time, 2))
                     return ExternalServiceHealth(
                         name=name,
                         status="healthy",
                         response_time_ms=round(response_time, 2)
                     )
                 else:
+                    logger.warning("external_service_degraded", service=name, status_code=response.status_code, response_time_ms=round(response_time, 2))
                     return ExternalServiceHealth(
                         name=name,
                         status="degraded",
@@ -135,7 +139,7 @@ def get_resource_usage() -> ResourceUsage:
             memory_total_mb=round(memory.total / (1024 * 1024), 1)
         )
     except Exception as e:
-        logger.error(f"Resource usage check failed: {str(e)}")
+        logger.error("resource_usage_check_failed", error=str(e))
         # Return default values if psutil fails
         return ResourceUsage(
             cpu_percent=0.0,
