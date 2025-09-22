@@ -4,7 +4,7 @@ import os
 
 class Settings(BaseSettings):
     # Database
-    database_url: str = os.getenv("DATABASE_URL", "postgresql://user:password@localhost/stitch_cms")
+    database_url: str = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./stitch_cms.db")
     
     # Security
     secret_key: str = os.getenv("SECRET_KEY", "your-secret-key-change-this")

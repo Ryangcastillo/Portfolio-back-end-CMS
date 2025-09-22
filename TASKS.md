@@ -132,18 +132,20 @@ This document tracks executable tasks (TASK-###) that implement architectural pl
 **Implementation Notes**: Use Python's structlog library, integrate with FastAPI middleware.
 
 ### TASK-008 Create Health Check Endpoints
-**Status**: Not Started  
+**Status**: Completed  
 **References**: PLAN-009 (Health Monitoring), CONST-P7 (Observability)  
-**Assignee**: Vacant  
+**Assignee**: System  
 **Estimated Effort**: S  
 **Dependencies**: TASK-002
 
 **Acceptance Criteria**:
-- [ ] `/health` endpoint with system status
-- [ ] Database connectivity check
-- [ ] External service dependency checks
-- [ ] Resource usage metrics (CPU, memory)
-- [ ] Proper HTTP status codes for different health states
+- [x] `/health` endpoint with system status
+- [x] Database connectivity check
+- [x] External service dependency checks
+- [x] Resource usage metrics (CPU, memory)
+- [x] Proper HTTP status codes for different health states
+
+**Implementation Notes**: Comprehensive health monitoring system with multiple endpoints for different health check granularities. Includes system resource monitoring via psutil.
 
 ### TASK-016 Implement Governance Compliance Automation
 **Status**: Completed  
