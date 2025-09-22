@@ -1,4 +1,4 @@
-# Stitch CMS - Headless CMS Architecture
+# CMS - Headless CMS Architecture
 
 > A modern, modular **Headless Content Management System** with integrated AI capabilities, designed for scalability and multi-frontend flexibility.
 
