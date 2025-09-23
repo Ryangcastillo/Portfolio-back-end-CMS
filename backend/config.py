@@ -4,7 +4,7 @@ import os
 
 class Settings(BaseSettings):
     # Database
-    database_url: str = os.getenv("DATABASE_URL", "postgresql://user:password@localhost/stitch_cms")
+    database_url: str = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./stitch_cms.db")
     
     # Security
     secret_key: str = os.getenv("SECRET_KEY", "your-secret-key-change-this")
@@ -51,6 +51,7 @@ class Settings(BaseSettings):
     
     # Logging
     log_level: str = os.getenv("LOG_LEVEL", "INFO")
+    environment: str = os.getenv("ENVIRONMENT", "development")
     
     class Config:
         env_file = ".env"

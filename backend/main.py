@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 
 from .database import init_db
 from .database import init_db
-from .routers import auth, content, dashboard, modules, settings, ai_assistant, events, notifications, portfolio
+from .routers import auth, content, dashboard, modules, settings, ai_assistant, events, notifications, portfolio, health
 from .config import get_settings
 from .logging_config import configure_logging
 
@@ -59,6 +59,7 @@ app.include_router(ai_assistant.router, prefix="/api/ai", tags=["AI Assistant"])
 app.include_router(events.router, prefix="/api/events", tags=["Event Management"])
 app.include_router(notifications.router, prefix="/api/notifications", tags=["Notifications"])
 app.include_router(portfolio.router, tags=["Portfolio"])
+app.include_router(health.router, tags=["Health Monitoring"])
 
 # Middleware registration
 app.add_middleware(RequestIDMiddleware)
@@ -93,6 +94,4 @@ async def unhandled_exception_handler(request, exc: Exception):
 async def root():
     return {"message": "Stitch CMS API is running"}
 
-@app.get("/health")
-async def health_check():
-    return {"status": "healthy", "version": "1.0.0"}
+
