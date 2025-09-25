@@ -4,16 +4,17 @@ from pydantic import BaseModel
 from datetime import date
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from ..database import get_session
-from ..models.portfolio_models import (
-    PortfolioSummary as PortfolioSummaryModel,
-    Project as ProjectModel,
-    Skill as SkillModel,
-    Experience as ExperienceModel,
-    Education as EducationModel,
-    Certification as CertificationModel,
-    Testimonial as TestimonialModel,
-)
+from ..database import get_db
+# Temporarily commented out - portfolio models don't exist yet
+# from ..models.portfolio_models import (
+#     PortfolioSummary as PortfolioSummaryModel,
+#     Project as ProjectModel,
+#     Skill as SkillModel,
+#     Experience as ExperienceModel,
+#     Education as EducationModel,
+#     Certification as CertificationModel,
+#     Testimonial as TestimonialModel,
+# )
 
 router = APIRouter(prefix="/api/v1/portfolio", tags=["portfolio"])
 
@@ -59,7 +60,7 @@ class PortfolioSummarySchema(BaseModel):
 
 # Portfolio endpoints
 @router.get("/summary", response_model=PortfolioSummarySchema)
-async def get_portfolio_summary(session: AsyncSession = Depends(get_session)):
+async def get_portfolio_summary(session: AsyncSession = Depends(get_db)):
     """Get portfolio summary information"""
     try:
         # Try to get from database first
@@ -93,7 +94,7 @@ async def get_portfolio_summary(session: AsyncSession = Depends(get_session)):
     )
 
 @router.get("/projects", response_model=List[ProjectSchema])
-async def get_projects(featured_only: bool = False, session: AsyncSession = Depends(get_session)):
+async def get_projects(featured_only: bool = False, session: AsyncSession = Depends(get_db)):
     """Get all projects or only featured ones"""
     try:
         # Try to get from database first
@@ -231,16 +232,16 @@ async def get_experience():
 
 # Future endpoints for CRUD operations (when you add database models)
 # @router.post("/projects", response_model=ProjectSchema)
-# async def create_project(project: ProjectSchema, session: AsyncSession = Depends(get_session)):
+# async def create_project(project: ProjectSchema, session: AsyncSession = Depends(get_db)):
 #     """Create a new project"""
 #     pass
 
 # @router.put("/projects/{project_id}", response_model=ProjectSchema)
-# async def update_project(project_id: int, project: ProjectSchema, session: AsyncSession = Depends(get_session)):
+# async def update_project(project_id: int, project: ProjectSchema, session: AsyncSession = Depends(get_db)):
 #     """Update a project"""
 #     pass
 
 # @router.delete("/projects/{project_id}")
-# async def delete_project(project_id: int, session: AsyncSession = Depends(get_session)):
+# async def delete_project(project_id: int, session: AsyncSession = Depends(get_db)):
 #     """Delete a project"""
 #     pass
