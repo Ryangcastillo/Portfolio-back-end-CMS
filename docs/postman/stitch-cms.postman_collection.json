@@ -1,0 +1,426 @@
+{
+  "info": {
+    "name": "Stitch CMS API",
+    "description": "Logical grouping of Stitch CMS endpoints for frontend integration and testing.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8000" },
+    { "key": "accessToken", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "description": "User registration, login, and token lifecycle.",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "auth", "register"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"username\": \"admin\",\n  \"password\": \"Passw0rd!\",\n  \"full_name\": \"Site Admin\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/x-www-form-urlencoded" } ],
+            "url": { "raw": "{{baseUrl}}/api/auth/token", "host": ["{{baseUrl}}"], "path": ["api", "auth", "token"] },
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "username", "value": "admin" },
+                { "key": "password", "value": "Passw0rd!" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{baseUrl}}/api/auth/refresh", "host": ["{{baseUrl}}"], "path": ["api", "auth", "refresh"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refreshToken}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Current User",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/auth/me", "host": ["{{baseUrl}}"], "path": ["api", "auth", "me"] }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/auth/logout", "host": ["{{baseUrl}}"], "path": ["api", "auth", "logout"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refreshToken}}\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "description": "Stats and quick actions for the admin console.",
+      "item": [
+        {
+          "name": "Stats",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{accessToken}}" } ],
+            "url": { "raw": "{{baseUrl}}/api/dashboard/stats", "host": ["{{baseUrl}}"], "path": ["api", "dashboard", "stats"] }
+          }
+        },
+        {
+          "name": "Quick Actions",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{accessToken}}" } ],
+            "url": { "raw": "{{baseUrl}}/api/dashboard/quick-actions", "host": ["{{baseUrl}}"], "path": ["api", "dashboard", "quick-actions"] }
+          }
+        },
+        {
+          "name": "Analytics",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{accessToken}}" } ],
+            "url": {
+              "raw": "{{baseUrl}}/api/dashboard/analytics?days=30",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "dashboard", "analytics"],
+              "query": [ { "key": "days", "value": "30" } ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Content",
+      "description": "Content CRUD and AI helpers.",
+      "item": [
+        {
+          "name": "List Content",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{accessToken}}" } ],
+            "url": { "raw": "{{baseUrl}}/api/content?limit=20", "host": ["{{baseUrl}}"], "path": ["api", "content"], "query": [ { "key": "limit", "value": "20" } ] }
+          }
+        },
+        {
+          "name": "Create Content",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/content", "host": ["{{baseUrl}}"], "path": ["api", "content"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Landing Page Hero\",\n  \"content_type\": \"page\",\n  \"body\": \"<h1>Build with Stitch</h1>\",\n  \"status\": \"draft\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Content",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{accessToken}}" } ],
+            "url": { "raw": "{{baseUrl}}/api/content/{{contentId}}", "host": ["{{baseUrl}}"], "path": ["api", "content", "{{contentId}}"] }
+          }
+        },
+        {
+          "name": "Update Content",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/content/{{contentId}}", "host": ["{{baseUrl}}"], "path": ["api", "content", "{{contentId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Landing Page Hero\",\n  \"status\": \"published\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Content",
+          "request": {
+            "method": "DELETE",
+            "header": [ { "key": "Authorization", "value": "Bearer {{accessToken}}" } ],
+            "url": { "raw": "{{baseUrl}}/api/content/{{contentId}}", "host": ["{{baseUrl}}"], "path": ["api", "content", "{{contentId}}"] }
+          }
+        },
+        {
+          "name": "AI Suggestions",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Authorization", "value": "Bearer {{accessToken}}" } ],
+            "url": { "raw": "{{baseUrl}}/api/content/{{contentId}}/ai-suggestions", "host": ["{{baseUrl}}"], "path": ["api", "content", "{{contentId}}", "ai-suggestions"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Modules",
+      "description": "Marketplace and installed modules management.",
+      "item": [
+        {
+          "name": "Available Modules",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{accessToken}}" } ],
+            "url": { "raw": "{{baseUrl}}/api/modules/available", "host": ["{{baseUrl}}"], "path": ["api", "modules", "available"] }
+          }
+        },
+        {
+          "name": "Installed Modules",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{accessToken}}" } ],
+            "url": { "raw": "{{baseUrl}}/api/modules/installed", "host": ["{{baseUrl}}"], "path": ["api", "modules", "installed"] }
+          }
+        },
+        {
+          "name": "Install Module",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/modules/install/google_analytics", "host": ["{{baseUrl}}"], "path": ["api", "modules", "install", "google_analytics"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"google_analytics\",\n  \"description\": \"Google Analytics integration\",\n  \"version\": \"1.0.0\",\n  \"configuration\": {\"tracking_id\": \"G-XXXX\"}\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Module",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/modules/{{moduleId}}", "host": ["{{baseUrl}}"], "path": ["api", "modules", "{{moduleId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_active\": true,\n  \"configuration\": {\n    \"tracking_id\": \"G-YYYY\"\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "Activate Module",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Authorization", "value": "Bearer {{accessToken}}" } ],
+            "url": { "raw": "{{baseUrl}}/api/modules/{{moduleId}}/activate", "host": ["{{baseUrl}}"], "path": ["api", "modules", "{{moduleId}}", "activate"] }
+          }
+        },
+        {
+          "name": "Deactivate Module",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Authorization", "value": "Bearer {{accessToken}}" } ],
+            "url": { "raw": "{{baseUrl}}/api/modules/{{moduleId}}/deactivate", "host": ["{{baseUrl}}"], "path": ["api", "modules", "{{moduleId}}", "deactivate"] }
+          }
+        },
+        {
+          "name": "Uninstall Module",
+          "request": {
+            "method": "DELETE",
+            "header": [ { "key": "Authorization", "value": "Bearer {{accessToken}}" } ],
+            "url": { "raw": "{{baseUrl}}/api/modules/{{moduleId}}", "host": ["{{baseUrl}}"], "path": ["api", "modules", "{{moduleId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Settings",
+      "description": "Site configuration endpoints.",
+      "item": [
+        {
+          "name": "List Settings",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{accessToken}}" } ],
+            "url": { "raw": "{{baseUrl}}/api/settings", "host": ["{{baseUrl}}"], "path": ["api", "settings"] }
+          }
+        },
+        {
+          "name": "Get Setting",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{accessToken}}" } ],
+            "url": { "raw": "{{baseUrl}}/api/settings/{{settingKey}}", "host": ["{{baseUrl}}"], "path": ["api", "settings", "{{settingKey}}"] }
+          }
+        },
+        {
+          "name": "Create Setting",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/settings", "host": ["{{baseUrl}}"], "path": ["api", "settings"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"key\": \"hero_headline\",\n  \"value\": \"Build your portfolio with Stitch\",\n  \"description\": \"Landing page hero text\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Setting",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/settings/{{settingKey}}", "host": ["{{baseUrl}}"], "path": ["api", "settings", "{{settingKey}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"value\": \"Updated copy\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Setting",
+          "request": {
+            "method": "DELETE",
+            "header": [ { "key": "Authorization", "value": "Bearer {{accessToken}}" } ],
+            "url": { "raw": "{{baseUrl}}/api/settings/{{settingKey}}", "host": ["{{baseUrl}}"], "path": ["api", "settings", "{{settingKey}}"] }
+          }
+        },
+        {
+          "name": "Site Config",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{accessToken}}" } ],
+            "url": { "raw": "{{baseUrl}}/api/settings/config/site", "host": ["{{baseUrl}}"], "path": ["api", "settings", "config", "site"] }
+          }
+        },
+        {
+          "name": "Update Site Config",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/settings/config/site", "host": ["{{baseUrl}}"], "path": ["api", "settings", "config", "site"] },
+            "body": { "mode": "raw", "raw": "{\n  \"site_title\": \"My Portfolio\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "AI Assistant",
+      "description": "Provider configuration and AI content generation.",
+      "item": [
+        {
+          "name": "List Providers",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{accessToken}}" } ],
+            "url": { "raw": "{{baseUrl}}/api/ai/providers", "host": ["{{baseUrl}}"], "path": ["api", "ai", "providers"] }
+          }
+        },
+        {
+          "name": "Create Provider",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/ai/providers", "host": ["{{baseUrl}}"], "path": ["api", "ai", "providers"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"openrouter\",\n  \"display_name\": \"OpenRouter\",\n  \"api_key\": \"sk-live-...\",\n  \"base_url\": \"https://openrouter.ai/api/v1\",\n  \"is_active\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Generate Content",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/ai/generate-content", "host": ["{{baseUrl}}"], "path": ["api", "ai", "generate-content"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"Write a hero section for my portfolio site\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Portfolio",
+      "description": "Public-facing data for the landing page.",
+      "item": [
+        {
+          "name": "Summary",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/portfolio/summary", "host": ["{{baseUrl}}"], "path": ["api", "v1", "portfolio", "summary"] }
+          }
+        },
+        {
+          "name": "Projects",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/portfolio/projects?featured_only=false",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "portfolio", "projects"],
+              "query": [ { "key": "featured_only", "value": "false" } ]
+            }
+          }
+        },
+        {
+          "name": "Skills",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/portfolio/skills", "host": ["{{baseUrl}}"], "path": ["api", "v1", "portfolio", "skills"] }
+          }
+        },
+        {
+          "name": "Experience",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/portfolio/experience", "host": ["{{baseUrl}}"], "path": ["api", "v1", "portfolio", "experience"] }
+          }
+        }
+      ]
+    }
+  ]
+}
