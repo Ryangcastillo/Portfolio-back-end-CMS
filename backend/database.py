@@ -9,8 +9,11 @@ from .config import get_settings
 
 settings = get_settings()
 
-# Convert PostgreSQL URL to async
-database_url = settings.database_url.replace("postgresql://", "postgresql+asyncpg://")
+# Convert PostgreSQL URL to async, or use SQLite for development
+if "sqlite" in settings.database_url:
+    database_url = settings.database_url
+else:
+    database_url = settings.database_url.replace("postgresql://", "postgresql+asyncpg://")
 
 engine = create_async_engine(database_url, echo=True)
 AsyncSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
