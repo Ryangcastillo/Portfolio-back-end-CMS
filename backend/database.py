@@ -9,8 +9,22 @@ from .config import get_settings
 
 settings = get_settings()
 
-# Convert PostgreSQL URL to async
-database_url = settings.database_url.replace("postgresql://", "postgresql+asyncpg://")
+# Choose database URL based on configuration
+def get_database_url() -> str:
+    """Get the appropriate database URL based on configuration"""
+    # If Neon authentication is enabled and Neon URL is provided, use it
+    if settings.use_neon_auth and settings.neon_database_url:
+        if "postgresql://" in settings.neon_database_url:
+            return settings.neon_database_url.replace("postgresql://", "postgresql+asyncpg://")
+        return settings.neon_database_url
+    
+    # Otherwise use the regular database URL
+    if "sqlite" in settings.database_url:
+        return settings.database_url
+    else:
+        return settings.database_url.replace("postgresql://", "postgresql+asyncpg://")
+
+database_url = get_database_url()
 
 engine = create_async_engine(database_url, echo=True)
 AsyncSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)

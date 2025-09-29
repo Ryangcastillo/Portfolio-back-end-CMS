@@ -7,7 +7,11 @@ This guide summarizes the API contracts that power the Stitch CMS frontend exper
 - **Backend**: `http://localhost:8000`
 - **Production Example**: `https://<your-vercel-app>.vercel.app`
 
-All secure endpoints require a `Bearer` token generated from the `/api/auth/token` login flow.
+All secure endpoints require a `Bearer` token generated from the authentication endpoints:
+- `/api/auth/token` - For regular users (editor, viewer roles)  
+- `/api/auth/neon-auth` - For admin access via Neon authentication
+
+**Note**: Admin users cannot login via `/api/auth/token` - they must use Neon authentication.
 
 ## Public Landing Page Data
 

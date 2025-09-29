@@ -6,6 +6,7 @@ from passlib.context import CryptContext
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 import secrets
+import httpx
 from pydantic import BaseModel
 
 from ..database import get_db, User
@@ -106,6 +107,14 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSessi
             headers={"WWW-Authenticate": "Bearer"},
         )
     
+    # Disable admin login functionality
+    if user.role == "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin login has been disabled. Please use alternative authentication method.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
     access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
     claims = create_access_token_claims(user)
     access_token = create_access_token(claims, expires_delta=access_token_expires)
@@ -145,6 +154,114 @@ async def refresh_tokens(payload: RefreshRequest, db: AsyncSession = Depends(get
 
 class LogoutRequest(BaseModel):
     refresh_token: str
+
+class NeonAuthRequest(BaseModel):
+    """Request model for Neon authentication"""
+    project_id: str
+    api_key: str
+    branch: str = "main"
+
+class NeonAuthResponse(BaseModel):
+    """Response model for Neon authentication"""
+    access_token: str
+    token_type: str = "bearer"
+    expires_in: int
+    neon_project_id: str
+    neon_branch: str
+
+async def authenticate_with_neon(project_id: str, api_key: str, branch: str = "main") -> dict:
+    """Authenticate with Neon database API"""
+    neon_api_url = f"https://console.neon.tech/api/v2/projects/{project_id}"
+    
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(neon_api_url, headers=headers)
+            
+            if response.status_code == 200:
+                project_data = response.json()
+                return {
+                    "success": True,
+                    "project": project_data,
+                    "branch": branch
+                }
+            else:
+                return {
+                    "success": False,
+                    "error": f"Neon API returned status {response.status_code}",
+                    "details": response.text
+                }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": f"Failed to connect to Neon API: {str(e)}"
+        }
+
+@router.post("/neon-auth", response_model=NeonAuthResponse)
+async def neon_authenticate(auth_data: NeonAuthRequest, db: AsyncSession = Depends(get_db)):
+    """
+    Authenticate using Neon database credentials
+    This replaces admin login functionality with Neon-based authentication
+    """
+    settings = get_settings()
+    
+    # Verify Neon authentication
+    neon_result = await authenticate_with_neon(
+        auth_data.project_id, 
+        auth_data.api_key, 
+        auth_data.branch
+    )
+    
+    if not neon_result["success"]:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Neon authentication failed: {neon_result['error']}",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Create or get user for Neon authentication
+    # Using project_id as username for Neon auth
+    neon_username = f"neon_{auth_data.project_id}"
+    
+    result = await db.execute(select(User).where(User.username == neon_username))
+    user = result.scalar_one_or_none()
+    
+    # Create Neon user if doesn't exist
+    if not user:
+        # Create new Neon-authenticated user with admin role
+        hashed_api_key = get_password_hash(auth_data.api_key)
+        user = User(
+            email=f"{neon_username}@neon.tech",
+            username=neon_username,
+            hashed_password=hashed_api_key,
+            full_name=f"Neon Project {auth_data.project_id}",
+            role="admin",  # Grant admin role to Neon-authenticated users
+            is_active=True
+        )
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
+    
+    # Generate access token
+    access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
+    claims = create_access_token_claims(user)
+    claims["neon_project_id"] = auth_data.project_id
+    claims["neon_branch"] = auth_data.branch
+    claims["auth_method"] = "neon"
+    
+    access_token = create_access_token(claims, expires_delta=access_token_expires)
+    
+    return NeonAuthResponse(
+        access_token=access_token,
+        token_type="bearer",
+        expires_in=int(access_token_expires.total_seconds()),
+        neon_project_id=auth_data.project_id,
+        neon_branch=auth_data.branch
+    )
 
 @router.post("/logout")
 async def logout(payload: LogoutRequest, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):

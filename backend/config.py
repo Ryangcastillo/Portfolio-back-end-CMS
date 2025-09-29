@@ -4,7 +4,14 @@ import os
 
 class Settings(BaseSettings):
     # Database
-    database_url: str = os.getenv("DATABASE_URL", "postgresql://user:password@localhost/stitch_cms")
+    database_url: str = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./stitch_cms.db")
+    
+    # Neon Database Configuration
+    neon_database_url: Optional[str] = os.getenv("NEON_DATABASE_URL")
+    neon_api_key: Optional[str] = os.getenv("NEON_API_KEY")
+    neon_project_id: Optional[str] = os.getenv("NEON_PROJECT_ID")
+    neon_branch: str = os.getenv("NEON_BRANCH", "main")
+    use_neon_auth: bool = os.getenv("USE_NEON_AUTH", "false").lower() == "true"
     
     # Security
     secret_key: str = os.getenv("SECRET_KEY", "your-secret-key-change-this")
@@ -51,6 +58,7 @@ class Settings(BaseSettings):
     
     # Logging
     log_level: str = os.getenv("LOG_LEVEL", "INFO")
+    environment: str = os.getenv("ENVIRONMENT", "development")
     
     class Config:
         env_file = ".env"
