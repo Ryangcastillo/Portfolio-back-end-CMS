@@ -11,13 +11,22 @@ All secure endpoints require a `Bearer` token generated from the `/api/auth/toke
 
 ## Public Landing Page Data
 
+All marketing experiences can be powered via unauthenticated endpoints mounted under `/api/public`. The same handlers are also exposed under `/api/v1/portfolio/*` for backwards compatibility.
+
 | Section            | Endpoint                                   | Notes |
 |-------------------|--------------------------------------------|-------|
-| Hero / About       | `GET /api/v1/portfolio/summary`            | Returns name, title, bio, contact links, resume URL. |
-| Featured Projects  | `GET /api/v1/portfolio/projects?featured_only=true` | Use the `featured_only` query to control hero cards. |
-| Skills Grid        | `GET /api/v1/portfolio/skills`             | Already grouped by category; great for tabbed layouts. |
-| Timeline           | `GET /api/v1/portfolio/experience`         | Contains chronological work history with `is_current` flag. |
-| Testimonials (future) | Extend `/api/v1/portfolio` router once testimonial model is added. |
+| Hero / About      | `GET /api/public/profile`                  | Returns name, title, biography, location, resume URL, and social links. |
+| Stats strip       | `GET /api/public/stats`                    | Metric name/value pairs surfaced under the hero CTA. |
+| Skills Grid       | `GET /api/public/skills`                   | Supports `featured_only=true` and `category=` filters. |
+| Featured Projects | `GET /api/public/projects?featured_only=true&limit=3` | Use `category` and `limit` to slice cards per portfolio page. |
+| Project Details   | `GET /api/public/projects/{id}`            | Returns the long description, impact metrics, and external links. |
+| Categories        | `GET /api/public/project-categories`       | Aggregated counts for filters or tab navigation. |
+| Timeline          | `GET /api/public/experience`               | Chronological work history with `achievements` highlights. |
+| Testimonials      | `GET /api/public/testimonials`             | Optional `featured_only` and `limit` parameters for carousel sizing. |
+| Homepage bundle   | `GET /api/public/homepage-data`            | Convenience payload combining profile, stats, featured skills, and featured projects. |
+| Full overview     | `GET /api/public/portfolio-overview`       | One-shot payload that powers “About” or press kits. |
+
+> **Environment variables**: The Vite bundle reads `VITE_API_URL`. Create a `.env.local` file with `VITE_API_URL=http://localhost:8000` (or export `REACT_APP_API_URL` when using Create React App).
 
 ## Authenticated Dashboard Data
 
@@ -61,8 +70,9 @@ Configure once via:
 
 - `POST /api/ai/providers`
 - `POST /api/ai/generate-content`
+- `POST /api/ai/public/chat`
 
-Store the selected provider metadata client-side to toggle AI helpers in the UI.
+The public chat endpoint powers the portfolio chatbot and honours the active provider + encrypted API key. Keep the key server-side—only the backend touches it.
 
 ## Integration Recommendations
 

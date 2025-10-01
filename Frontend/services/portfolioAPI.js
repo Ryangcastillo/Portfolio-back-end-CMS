@@ -1,5 +1,17 @@
 // API service for connecting to the headless CMS backend
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000'
+const resolveBaseUrl = () => {
+  const viteUrl = typeof import.meta !== 'undefined' ? import.meta.env?.VITE_API_URL : undefined
+  if (viteUrl) return viteUrl
+
+  const nodeEnv = typeof globalThis !== 'undefined' ? globalThis.process?.env : undefined
+  if (nodeEnv?.REACT_APP_API_URL) {
+    return nodeEnv.REACT_APP_API_URL
+  }
+
+  return 'http://localhost:8000'
+}
+
+const API_BASE_URL = resolveBaseUrl()
 
 class PortfolioAPI {
   constructor(baseURL = API_BASE_URL) {
@@ -103,6 +115,26 @@ class PortfolioAPI {
 
   async getPortfolioOverview() {
     return this.fetchJSON('/api/public/portfolio-overview')
+  }
+
+  async askAssistant(prompt, options = {}) {
+    if (!prompt || !prompt.trim()) {
+      throw new Error('Prompt is required')
+    }
+
+    const payload = {
+      prompt,
+    }
+
+    if (options.model) payload.model = options.model
+    if (typeof options.temperature === 'number') payload.temperature = options.temperature
+    if (options.max_tokens) payload.max_tokens = options.max_tokens
+    if (options.context) payload.context = options.context
+
+    return this.fetchJSON('/api/ai/public/chat', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
   }
 }
 

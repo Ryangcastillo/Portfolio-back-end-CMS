@@ -1,45 +1,74 @@
-from fastapi import APIRouter, HTTPException, Depends
-from typing import List, Optional
-from pydantic import BaseModel
+from __future__ import annotations
+
 from datetime import date
+from typing import List, Optional
+
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+
 from ..database import get_db
-# Temporarily commented out - portfolio models don't exist yet
-# from ..models.portfolio_models import (
-#     PortfolioSummary as PortfolioSummaryModel,
-#     Project as ProjectModel,
-#     Skill as SkillModel,
-#     Experience as ExperienceModel,
-#     Education as EducationModel,
-#     Certification as CertificationModel,
-#     Testimonial as TestimonialModel,
-# )
+from ..services.portfolio_data import PortfolioDataService
 
-router = APIRouter(prefix="/api/v1/portfolio", tags=["portfolio"])
+router = APIRouter(tags=["Portfolio"])
 
-# Pydantic models for portfolio data
-class ProjectSchema(BaseModel):
-    id: Optional[int] = None
+
+class PortfolioStatSchema(BaseModel):
+    id: int
+    metric_name: str
+    metric_value: str
+
+
+class PortfolioSummarySchema(BaseModel):
+    full_name: str
+    title: str
+    bio_description: str
+    availability_status: Optional[str] = None
+    email: Optional[str] = None
+    location: Optional[str] = None
+    linkedin_url: Optional[str] = None
+    github_url: Optional[str] = None
+    website_url: Optional[str] = None
+    resume_url: Optional[str] = None
+    years_experience: Optional[int] = None
+
+
+class SkillSchema(BaseModel):
+    id: int
     title: str
     description: str
-    technologies: List[str]
+    category: Optional[str] = None
+    icon_name: Optional[str] = None
+    color_gradient: Optional[str] = None
+    projects_count: Optional[str] = None
+    impact_metric: Optional[str] = None
+    featured: bool = False
+
+
+class ProjectSchema(BaseModel):
+    id: int
+    title: str
+    short_description: str
+    full_description: Optional[str] = None
+    description: Optional[str] = None
+    business_problem: Optional[str] = None
+    solution_approach: Optional[str] = None
+    results_achieved: Optional[str] = None
+    impact_metric: Optional[str] = None
+    technologies: List[str] = []
+    category: Optional[str] = None
     github_url: Optional[str] = None
     demo_url: Optional[str] = None
+    thumbnail_url: Optional[str] = None
     image_url: Optional[str] = None
+    link: Optional[str] = None
     start_date: Optional[date] = None
     end_date: Optional[date] = None
     featured: bool = False
 
-class SkillSchema(BaseModel):
-    id: Optional[int] = None
-    name: str
-    category: str  # e.g., "Frontend", "Backend", "Database", "DevOps"
-    level: int  # 1-5 proficiency level
-    years_of_experience: Optional[int] = None
 
 class ExperienceSchema(BaseModel):
-    id: Optional[int] = None
+    id: int
     company: str
     position: str
     description: str
@@ -47,201 +76,168 @@ class ExperienceSchema(BaseModel):
     end_date: Optional[date] = None
     location: Optional[str] = None
     is_current: bool = False
+    achievements: Optional[List[str]] = None
 
-class PortfolioSummarySchema(BaseModel):
+
+class TestimonialSchema(BaseModel):
+    id: int
     name: str
-    title: str
-    bio: str
-    email: str
-    linkedin_url: Optional[str] = None
-    github_url: Optional[str] = None
-    website_url: Optional[str] = None
-    resume_url: Optional[str] = None
+    role: Optional[str] = None
+    company: Optional[str] = None
+    quote: str
+    featured: bool = False
 
-# Portfolio endpoints
-@router.get("/summary", response_model=PortfolioSummarySchema)
-async def get_portfolio_summary(session: AsyncSession = Depends(get_db)):
-    """Get portfolio summary information"""
-    try:
-        # Try to get from database first
-        result = await session.execute(select(PortfolioSummaryModel).where(PortfolioSummaryModel.is_active == True))
-        summary = result.scalar_one_or_none()
-        
-        if summary:
-            return PortfolioSummarySchema(
-                name=summary.name,
-                title=summary.title,
-                bio=summary.bio,
-                email=summary.email,
-                linkedin_url=summary.linkedin_url,
-                github_url=summary.github_url,
-                website_url=summary.website_url,
-                resume_url=summary.resume_url
-            )
-    except Exception as e:
-        # Log the error but continue with fallback data
-        print(f"Database error: {e}")
-    
-    # Fallback to static data if no database record or error
-    return PortfolioSummarySchema(
-        name="Your Name",
-        title="Full Stack Developer",
-        bio="Passionate developer with expertise in building modern web applications using React, Next.js, Python, and FastAPI.",
-        email="your.email@example.com",
-        linkedin_url="https://linkedin.com/in/yourprofile",
-        github_url="https://github.com/yourusername",
-        website_url="https://yourwebsite.com"
+
+class ProjectCategorySchema(BaseModel):
+    slug: str
+    name: str
+    project_count: int
+
+
+class HomepageDataSchema(BaseModel):
+    profile: PortfolioSummarySchema
+    stats: List[PortfolioStatSchema]
+    featured_skills: List[SkillSchema]
+    featured_projects: List[ProjectSchema]
+
+
+class PortfolioOverviewSchema(BaseModel):
+    profile: PortfolioSummarySchema
+    stats: List[PortfolioStatSchema]
+    skills: List[SkillSchema]
+    projects: List[ProjectSchema]
+    experience: List[ExperienceSchema]
+    testimonials: List[TestimonialSchema]
+
+
+@router.get("/api/v1/portfolio/summary", response_model=PortfolioSummarySchema)
+@router.get("/api/public/profile", response_model=PortfolioSummarySchema)
+async def get_portfolio_summary(session: AsyncSession = Depends(get_db)) -> PortfolioSummarySchema:
+    summary = await PortfolioDataService.get_summary(session)
+    return PortfolioSummarySchema(**summary)
+
+
+@router.get("/api/v1/portfolio/stats", response_model=List[PortfolioStatSchema])
+@router.get("/api/public/stats", response_model=List[PortfolioStatSchema])
+async def get_portfolio_stats(session: AsyncSession = Depends(get_db)) -> List[PortfolioStatSchema]:
+    stats = await PortfolioDataService.get_stats(session)
+    return [PortfolioStatSchema(**item) for item in stats]
+
+
+@router.get("/api/v1/portfolio/skills", response_model=List[SkillSchema])
+@router.get("/api/public/skills", response_model=List[SkillSchema])
+async def get_skills(
+    featured_only: bool = False,
+    category: Optional[str] = None,
+    session: AsyncSession = Depends(get_db),
+) -> List[SkillSchema]:
+    skills = await PortfolioDataService.get_skills(session)
+    filtered = []
+    for skill in skills:
+        if featured_only and not skill.get("featured"):
+            continue
+        if category and skill.get("category", "").lower() != category.lower():
+            continue
+        filtered.append(SkillSchema(**skill))
+    return filtered
+
+
+@router.get("/api/v1/portfolio/projects", response_model=List[ProjectSchema])
+@router.get("/api/public/projects", response_model=List[ProjectSchema])
+async def get_projects(
+    featured_only: bool = False,
+    category: Optional[str] = None,
+    limit: Optional[int] = None,
+    session: AsyncSession = Depends(get_db),
+) -> List[ProjectSchema]:
+    projects = await PortfolioDataService.get_projects(session)
+    filtered = []
+    for project in projects:
+        if featured_only and not project.get("featured"):
+            continue
+        if category and project.get("category", "").lower() != category.lower():
+            continue
+        filtered.append(ProjectSchema(**project))
+
+    if limit is not None:
+        return filtered[: max(limit, 0)]
+    return filtered
+
+
+@router.get("/api/v1/portfolio/projects/{project_id}", response_model=ProjectSchema)
+@router.get("/api/public/projects/{project_id}", response_model=ProjectSchema)
+async def get_project_detail(
+    project_id: int,
+    session: AsyncSession = Depends(get_db),
+) -> ProjectSchema:
+    projects = await PortfolioDataService.get_projects(session)
+    project = next((item for item in projects if item.get("id") == project_id), None)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return ProjectSchema(**project)
+
+
+@router.get("/api/v1/portfolio/project-categories", response_model=List[ProjectCategorySchema])
+@router.get("/api/public/project-categories", response_model=List[ProjectCategorySchema])
+async def get_project_categories(session: AsyncSession = Depends(get_db)) -> List[ProjectCategorySchema]:
+    categories = await PortfolioDataService.get_project_categories(session)
+    return [ProjectCategorySchema(**item) for item in categories]
+
+
+@router.get("/api/v1/portfolio/experience", response_model=List[ExperienceSchema])
+@router.get("/api/public/experience", response_model=List[ExperienceSchema])
+async def get_experience(
+    featured_only: bool = False,
+    session: AsyncSession = Depends(get_db),
+) -> List[ExperienceSchema]:
+    experience = await PortfolioDataService.get_experience(session)
+    filtered = []
+    for item in experience:
+        if featured_only and not item.get("is_current"):
+            continue
+        filtered.append(ExperienceSchema(**item))
+    return filtered
+
+
+@router.get("/api/v1/portfolio/testimonials", response_model=List[TestimonialSchema])
+@router.get("/api/public/testimonials", response_model=List[TestimonialSchema])
+async def get_testimonials(
+    featured_only: bool = False,
+    limit: Optional[int] = None,
+    session: AsyncSession = Depends(get_db),
+) -> List[TestimonialSchema]:
+    testimonials = await PortfolioDataService.get_testimonials(session)
+    filtered = []
+    for testimonial in testimonials:
+        if featured_only and not testimonial.get("featured"):
+            continue
+        filtered.append(TestimonialSchema(**testimonial))
+    if limit is not None:
+        return filtered[: max(limit, 0)]
+    return filtered
+
+
+@router.get("/api/v1/portfolio/homepage-data", response_model=HomepageDataSchema)
+@router.get("/api/public/homepage-data", response_model=HomepageDataSchema)
+async def get_homepage_data(session: AsyncSession = Depends(get_db)) -> HomepageDataSchema:
+    homepage = await PortfolioDataService.get_homepage_data(session)
+    return HomepageDataSchema(
+        profile=PortfolioSummarySchema(**homepage["profile"]),
+        stats=[PortfolioStatSchema(**item) for item in homepage["stats"]],
+        featured_skills=[SkillSchema(**item) for item in homepage["featured_skills"]],
+        featured_projects=[ProjectSchema(**item) for item in homepage["featured_projects"]],
     )
 
-@router.get("/projects", response_model=List[ProjectSchema])
-async def get_projects(featured_only: bool = False, session: AsyncSession = Depends(get_db)):
-    """Get all projects or only featured ones"""
-    try:
-        # Try to get from database first
-        query = select(ProjectModel).where(ProjectModel.is_published == True)
-        if featured_only:
-            query = query.where(ProjectModel.is_featured == True)
-        query = query.order_by(ProjectModel.sort_order.desc(), ProjectModel.created_at.desc())
-        
-        result = await session.execute(query)
-        projects = result.scalars().all()
-        
-        if projects:
-            return [
-                ProjectSchema(
-                    id=p.id,
-                    title=p.title,
-                    description=p.description,
-                    technologies=p.technologies or [],
-                    github_url=p.github_url,
-                    demo_url=p.demo_url,
-                    image_url=p.image_url,
-                    start_date=p.start_date,
-                    end_date=p.end_date,
-                    featured=p.is_featured
-                )
-                for p in projects
-            ]
-    except Exception as e:
-        # Log the error but continue with fallback data
-        print(f"Database error: {e}")
-    
-    # Fallback to static data if no database records or error
-    projects = [
-        ProjectSchema(
-            id=1,
-            title="Stitch CMS",
-            description="A modern, AI-powered Content Management System built with Next.js and FastAPI",
-            technologies=["Next.js", "TypeScript", "FastAPI", "Python", "PostgreSQL", "Tailwind CSS"],
-            github_url="https://github.com/yourusername/cms",
-            demo_url="https://your-cms-demo.com",
-            start_date=date(2024, 1, 1),
-            featured=True
-        ),
-        ProjectSchema(
-            id=2,
-            title="E-Commerce Platform",
-            description="Full-stack e-commerce solution with payment integration and admin dashboard",
-            technologies=["React", "Node.js", "Express", "MongoDB", "Stripe API"],
-            github_url="https://github.com/yourusername/ecommerce",
-            demo_url="https://your-ecommerce-demo.com",
-            start_date=date(2023, 6, 1),
-            end_date=date(2023, 12, 1),
-            featured=True
-        ),
-        ProjectSchema(
-            id=3,
-            title="Task Management App",
-            description="Collaborative task management application with real-time updates",
-            technologies=["Vue.js", "Firebase", "Vuex", "CSS3"],
-            github_url="https://github.com/yourusername/task-manager",
-            start_date=date(2023, 1, 1),
-            end_date=date(2023, 5, 1),
-            featured=False
-        )
-    ]
-    
-    if featured_only:
-        return [p for p in projects if p.featured]
-    return projects
 
-@router.get("/skills", response_model=List[SkillSchema])
-async def get_skills():
-    """Get all skills grouped by category"""
-    # Sample skills data - replace with database queries later
-    skills = [
-        # Frontend
-        SkillSchema(id=1, name="React", category="Frontend", level=5, years_of_experience=4),
-        SkillSchema(id=2, name="Next.js", category="Frontend", level=4, years_of_experience=2),
-        SkillSchema(id=3, name="TypeScript", category="Frontend", level=4, years_of_experience=3),
-        SkillSchema(id=4, name="Vue.js", category="Frontend", level=3, years_of_experience=2),
-        SkillSchema(id=5, name="Tailwind CSS", category="Frontend", level=5, years_of_experience=3),
-        
-        # Backend
-        SkillSchema(id=6, name="Python", category="Backend", level=5, years_of_experience=5),
-        SkillSchema(id=7, name="FastAPI", category="Backend", level=4, years_of_experience=2),
-        SkillSchema(id=8, name="Node.js", category="Backend", level=4, years_of_experience=3),
-        SkillSchema(id=9, name="Express.js", category="Backend", level=4, years_of_experience=3),
-        
-        # Database
-        SkillSchema(id=10, name="PostgreSQL", category="Database", level=4, years_of_experience=3),
-        SkillSchema(id=11, name="MongoDB", category="Database", level=3, years_of_experience=2),
-        SkillSchema(id=12, name="SQLAlchemy", category="Database", level=4, years_of_experience=2),
-        
-        # DevOps
-        SkillSchema(id=13, name="Docker", category="DevOps", level=3, years_of_experience=2),
-        SkillSchema(id=14, name="GitHub Actions", category="DevOps", level=3, years_of_experience=2),
-        SkillSchema(id=15, name="Vercel", category="DevOps", level=4, years_of_experience=2),
-    ]
-    return skills
-
-@router.get("/experience", response_model=List[ExperienceSchema])
-async def get_experience():
-    """Get work experience in chronological order"""
-    # Sample experience data - replace with database queries later
-    experience = [
-        ExperienceSchema(
-            id=1,
-            company="Tech Startup Inc.",
-            position="Senior Full Stack Developer",
-            description="Lead development of web applications using React, Next.js, and Python. Mentored junior developers and implemented CI/CD pipelines.",
-            start_date=date(2022, 1, 1),
-            location="Remote",
-            is_current=True
-        ),
-        ExperienceSchema(
-            id=2,
-            company="Digital Agency Co.",
-            position="Full Stack Developer",
-            description="Developed custom web applications for clients using various technologies. Collaborated with designers and project managers to deliver high-quality solutions.",
-            start_date=date(2020, 6, 1),
-            end_date=date(2021, 12, 31),
-            location="San Francisco, CA"
-        ),
-        ExperienceSchema(
-            id=3,
-            company="Web Solutions LLC",
-            position="Frontend Developer",
-            description="Built responsive web interfaces using React and Vue.js. Optimized application performance and implemented modern CSS frameworks.",
-            start_date=date(2019, 1, 1),
-            end_date=date(2020, 5, 31),
-            location="New York, NY"
-        )
-    ]
-    return experience
-
-# Future endpoints for CRUD operations (when you add database models)
-# @router.post("/projects", response_model=ProjectSchema)
-# async def create_project(project: ProjectSchema, session: AsyncSession = Depends(get_db)):
-#     """Create a new project"""
-#     pass
-
-# @router.put("/projects/{project_id}", response_model=ProjectSchema)
-# async def update_project(project_id: int, project: ProjectSchema, session: AsyncSession = Depends(get_db)):
-#     """Update a project"""
-#     pass
-
-# @router.delete("/projects/{project_id}")
-# async def delete_project(project_id: int, session: AsyncSession = Depends(get_db)):
-#     """Delete a project"""
-#     pass
+@router.get("/api/v1/portfolio/overview", response_model=PortfolioOverviewSchema)
+@router.get("/api/public/portfolio-overview", response_model=PortfolioOverviewSchema)
+async def get_portfolio_overview(session: AsyncSession = Depends(get_db)) -> PortfolioOverviewSchema:
+    overview = await PortfolioDataService.get_portfolio_overview(session)
+    return PortfolioOverviewSchema(
+        profile=PortfolioSummarySchema(**overview["profile"]),
+        stats=[PortfolioStatSchema(**item) for item in overview["stats"]],
+        skills=[SkillSchema(**item) for item in overview["skills"]],
+        projects=[ProjectSchema(**item) for item in overview["projects"]],
+        experience=[ExperienceSchema(**item) for item in overview["experience"]],
+        testimonials=[TestimonialSchema(**item) for item in overview["testimonials"]],
+    )

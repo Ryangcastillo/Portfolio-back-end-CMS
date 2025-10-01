@@ -23,6 +23,24 @@ from .logging_config import configure_logging
 
 load_dotenv()
 configure_logging()
+settings = get_settings()
+
+default_origins = {
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:3000",
+    "https://your-domain.com",
+}
+
+if settings.frontend_url:
+    default_origins.add(settings.frontend_url.rstrip("/"))
+
+extra_origins = os.getenv("ALLOWED_ORIGINS")
+if extra_origins:
+    default_origins.update(
+        origin.strip() for origin in extra_origins.split(",") if origin.strip()
+    )
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -40,7 +58,7 @@ app = FastAPI(
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "https://your-domain.com"],
+    allow_origins=list(default_origins),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
