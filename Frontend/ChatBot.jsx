@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { MessageCircle, X, Send, Bot, User } from 'lucide-react'
+import { usePortfolioAPI } from './services/portfolioAPI'
 
 const ChatBot = () => {
   const [isOpen, setIsOpen] = useState(false)
@@ -15,6 +16,11 @@ const ChatBot = () => {
   const [inputValue, setInputValue] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const messagesEndRef = useRef(null)
+  const portfolioAPI = usePortfolioAPI()
+
+  const assistantContext =
+    "You are Ryan Castillo's AI assistant. Provide concise, professional answers about his experience, " +
+    'skills, projects, and availability using first-person plural (we) when representing the team.'
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -65,31 +71,49 @@ const ChatBot = () => {
   }
 
   const handleSendMessage = async () => {
-    if (!inputValue.trim()) return
+    const trimmedMessage = inputValue.trim()
+    if (!trimmedMessage) return
 
+    const timestamp = new Date()
     const userMessage = {
-      id: messages.length + 1,
+      id: `${timestamp.getTime()}-user`,
       type: 'user',
-      content: inputValue,
-      timestamp: new Date()
+      content: trimmedMessage,
+      timestamp,
     }
 
     setMessages(prev => [...prev, userMessage])
     setInputValue('')
     setIsTyping(true)
 
-    // Simulate typing delay
-    setTimeout(() => {
-      const botResponse = {
-        id: messages.length + 2,
+    try {
+      const response = await portfolioAPI.askAssistant(trimmedMessage, {
+        context: assistantContext,
+      })
+
+      const botContent = response?.content?.trim()
+      const botMessage = {
+        id: `${Date.now()}-bot`,
         type: 'bot',
-        content: getResponse(inputValue),
-        timestamp: new Date()
+        content: botContent || getResponse(trimmedMessage),
+        timestamp: new Date(),
       }
-      
-      setMessages(prev => [...prev, botResponse])
+
+      setMessages(prev => [...prev, botMessage])
+    } catch (error) {
+      console.error('AI assistant request failed:', error)
+
+      const fallbackMessage = {
+        id: `${Date.now()}-bot-fallback`,
+        type: 'bot',
+        content: getResponse(trimmedMessage),
+        timestamp: new Date(),
+      }
+
+      setMessages(prev => [...prev, fallbackMessage])
+    } finally {
       setIsTyping(false)
-    }, 1000 + Math.random() * 1000) // Random delay between 1-2 seconds
+    }
   }
 
   const handleKeyPress = (e) => {
@@ -125,7 +149,7 @@ const ChatBot = () => {
                 <Bot className="w-4 h-4 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold text-sm">Ryan's AI Assistant</h3>
+                <h3 className="font-semibold text-sm">Ryan&apos;s AI Assistant</h3>
                 <p className="text-xs text-muted-foreground">Ask me anything!</p>
               </div>
             </div>

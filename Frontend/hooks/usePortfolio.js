@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import portfolioAPI, { withErrorHandling } from '../services/portfolioAPI'
 
 // Hook for fetching homepage data
@@ -12,26 +12,27 @@ export const useHomepageData = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true)
-      setError(null)
-      
-      try {
-        const homepageData = await portfolioAPI.getHomepageData()
-        setData(homepageData)
-      } catch (err) {
-        setError(err)
-        console.error('Failed to fetch homepage data:', err)
-      } finally {
-        setLoading(false)
-      }
-    }
+  const fetchHomepageData = useCallback(async () => {
+    setLoading(true)
+    setError(null)
 
-    fetchData()
+    try {
+      const homepageData = await portfolioAPI.getHomepageData()
+      setData(homepageData)
+    } catch (err) {
+      setError(err)
+      console.error('Failed to fetch homepage data:', err)
+      throw err
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
-  return { data, loading, error, refetch: () => fetchData() }
+  useEffect(() => {
+    fetchHomepageData().catch(() => {})
+  }, [fetchHomepageData])
+
+  return { data, loading, error, refetch: fetchHomepageData }
 }
 
 // Hook for fetching skills
@@ -178,7 +179,7 @@ export const useTestimonials = (params = {}) => {
 
 // Hook with fallback to hardcoded data for development
 export const useHomepageDataWithFallback = () => {
-  const { data, loading, error } = useHomepageData()
+  const { data, loading, error, refetch } = useHomepageData()
   
   // Fallback hardcoded data (from original Home.jsx)
   const fallbackData = {
@@ -265,19 +266,23 @@ export const useHomepageDataWithFallback = () => {
   }
 
   // Return API data if available, otherwise fallback data
-  if (error || !data.profile) {
-    return { 
-      data: fallbackData, 
-      loading: false, 
-      error, 
-      usingFallback: true 
+  const shouldUseFallback = error || (!loading && !data.profile)
+
+  if (shouldUseFallback) {
+    return {
+      data: fallbackData,
+      loading: false,
+      error,
+      usingFallback: true,
+      refetch,
     }
   }
 
-  return { 
-    data, 
-    loading, 
-    error, 
-    usingFallback: false 
+  return {
+    data,
+    loading,
+    error,
+    usingFallback: false,
+    refetch,
   }
 }
