@@ -215,7 +215,7 @@ typing-extensions==4.15.0
     #   virtualenv
 urllib3==2.5.0
     # via requests
-uv==0.8.19
+uv==0.9.6
     # via -r requirements-dev.in
 virtualenv==20.34.0
     # via pre-commit
