@@ -51,6 +51,8 @@ flake8==7.3.0
     # via -r requirements-dev.in
 ghp-import==2.1.0
     # via mkdocs
+greenlet==3.2.4
+    # via sqlalchemy
 h11==0.16.0
     # via httpcore
 httpcore==1.0.9
@@ -215,7 +217,7 @@ typing-extensions==4.15.0
     #   virtualenv
 urllib3==2.5.0
     # via requests
-uv==0.8.19
+uv==0.9.6
     # via -r requirements-dev.in
 virtualenv==20.34.0
     # via pre-commit
